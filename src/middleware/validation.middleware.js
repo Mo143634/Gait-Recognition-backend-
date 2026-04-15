@@ -1,31 +1,19 @@
 import joi from "joi";
 import { Types } from "mongoose";
 
-export const generalFields = {
-    first_name: joi
-        .string()
-        .trim()
-        .min(3)
-        .max(20)
-        .required()
-        .messages({
-            "string.empty": "First Name is required",
-            "string.min": "First Name must be at least 3 characters long",
-            "string.max": "First Name must be at most 20 characters long",
-            "any.required": "First Name is required"
-        }),
 
-    last_name: joi
+export const generalFields = {
+    fullname: joi
         .string()
         .trim()
         .min(3)
-        .max(20)
+        .max(50)
         .required()
         .messages({
-            "string.empty": "Last Name is required",
-            "string.min": "Last Name must be at least 3 characters long",
-            "string.max": "Last Name must be at most 20 characters long",
-            "any.required": "Last Name is required"
+            "string.empty": "Full name is required",
+            "string.min": "Full name must be at least 3 characters long",
+            "string.max": "Full name must be at most 50 characters long",
+            "any.required": "Full name is required"
         }),
 
     email: joi

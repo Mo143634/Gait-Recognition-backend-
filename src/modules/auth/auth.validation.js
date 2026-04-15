@@ -3,15 +3,14 @@ import { generalFields } from "../../middleware/validation.middleware.js";
 import { logoutEnum } from "../../utils/Token/token.utils.js";
 
 export const signUpValidation = {
-    body:joi.object({
-        first_name:generalFields.first_name.required(),
-        last_name: generalFields.last_name.required(),
+    body: joi.object({
+        fullname: generalFields.fullname.required(),
         email: generalFields.email.required(),
         password: generalFields.password.required(),
-        confirm_password:generalFields.confirm_password,
+        confirm_password: generalFields.confirm_password,
         gender: generalFields.gender,
-        phone:generalFields.phone,
-        role:generalFields.role
+        phone: generalFields.phone,
+        role: generalFields.role
     }).required(),
 };
 
