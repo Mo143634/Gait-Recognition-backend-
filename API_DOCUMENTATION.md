@@ -44,7 +44,10 @@ Content-Type: application/json
     "_id": "507f1f77bcf86cd799439011",
     "fullname": "John Doe",
     "email": "john@example.com",
-    "confirm_email": false
+    "gender": "male",
+    "phone": "+1234567890",
+    "role": "USER",
+    "message": "Please check your email to confirm your account"
   }
 }
 ```

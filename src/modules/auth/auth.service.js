@@ -45,7 +45,15 @@ export const signup = async (req, res, next) => {
     res,
     statusCode: 201,
     message: "User Created Successfuly",
-    data: user ,
+    data: {
+      _id: user._id,
+      fullname: user.fullname,
+      email: user.email,
+      gender: user.gender,
+      phone: user.phone,
+      role: user.role,
+      message: "Please check your email to confirm your account"
+    },
   });
 };
 
