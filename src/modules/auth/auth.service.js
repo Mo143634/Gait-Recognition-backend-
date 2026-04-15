@@ -11,7 +11,7 @@ import { customAlphabet } from "nanoid";
 import TokenModel from "../../db/models/token.model.js";
 
 export const signup = async (req, res, next) => { 
-  const { first_name, last_name, password, email, gender, phone , role } = req.body;
+  const { fullname, password, email, gender, phone , role } = req.body;
 
   if (await findOne({ model: UserModel, filter: { email } })) 
     return next(new Error("a", { cause: 409 }));
@@ -23,13 +23,12 @@ export const signup = async (req, res, next) => {
   const otp = customAlphabet("0123456789", 6)();
   const hashOtp = await hash({plainText:otp});
   const otp_expired_at = new Date(Date.now()+2 * 60 * 1000);
-  emailEvent.emit("confirmEmail",{to:email , otp , first_name });
+  emailEvent.emit("confirmEmail",{to:email , otp , fullname });
 
   const user = await create({
     model: UserModel,
     data:[{
-      first_name,
-      last_name,
+      fullname,
       password:hashedPassword, 
       email,
       gender,
@@ -78,7 +77,7 @@ export const login = async (req, res, next) => {
 
   // emailEvent.emit("LoginSuccessfuly", {
   //   to: user.email,
-  //   first_name: user.first_name
+  //   fullname: user.fullname
   // });
 
   return successResponse({  
@@ -250,8 +249,7 @@ export const loginWithGmail = async (req, res, next) => {
     data: [
       {
         email,
-        first_name: given_name,
-        last_name: family_name,
+        fullname: `${given_name} ${family_name}`,
         photo: picture,
         provider: providerEnum.google,
         confirm_email: Date.now(),
@@ -315,7 +313,7 @@ export const forgetPassword = async(req,res,next)=>{
   if(!user){
     return next (new Error("User Not Found",{ cause:404 }));
   }
-  emailEvent.emit("forgetPassword",{to:email , otp , first_name:user.first_name });
+  emailEvent.emit("forgetPassword",{to:email , otp , fullname:user.fullname });
 
   return successResponse({
     res,

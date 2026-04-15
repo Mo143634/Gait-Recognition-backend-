@@ -1,7 +1,7 @@
 import { UserModel } from "../db/models/user.model.js";
 import { getSignature, verifyToken } from "../utils/Token/token.utils.js";
 import * as dbService from "../db/dbService.js"
-import { TokenModel } from "../db/models/token.model.js";
+import TokenModel from "../db/models/token.model.js";
 
 export const tokenTypeEnum = {
     access:"access",
@@ -49,7 +49,7 @@ const decodedToken = async({authorization,tokenType = tokenTypeEnum.access,next}
     return { user , decoded};
 };
 
-export const authentication = ({tokenType=tokenTypeEnum.access})=>{
+export const authentication = ({tokenType=tokenTypeEnum.access}={})=>{
     return async(req , res ,next)=>{
         const { user, decoded } = await decodedToken({
             authorization: req.headers.authorization  ,
@@ -62,7 +62,7 @@ export const authentication = ({tokenType=tokenTypeEnum.access})=>{
     }
 };
 
-export const authorization =({accessRoles=[] })=>{
+export const authorization =({accessRoles=[] }={})=>{
     return async(req,res,next)=>{
         if(!accessRoles.includes(req.user.role))
             return next(new Error("You Don't Have Access To This Route" , {cause:403}))

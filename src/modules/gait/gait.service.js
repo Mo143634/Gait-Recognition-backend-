@@ -25,7 +25,7 @@ export const uploadGaitVideo = async (req, res, next) => {
             uploadResult = await cloudinary.uploader.upload(req.file.path, {
                 resource_type: "video",
                 folder: `gait-recognition/videos/${userId}`,
-                public_id: `${Date.now()}_${req.user.first_name}`,
+                public_id: `${Date.now()}_${req.user._id}`,
                 quality: "auto:eco"
             });
         } catch (uploadError) {
