@@ -1,0 +1,22 @@
+import mongoose, { Schema } from "mongoose";
+
+export const tokenSchema =new Schema({
+    jti:{
+        type: String,
+        required:true,
+        unique:true
+    },
+    expireIn:{
+        type:Number,
+        required:true
+    },
+    userId:{
+        type:Schema.Types.ObjectId,
+        ref:"User",
+        required:true
+    }
+},
+    {timestamps:true}
+); 
+const TokenModel = mongoose.models.Token || mongoose.model("Token", tokenSchema);
+export default TokenModel;

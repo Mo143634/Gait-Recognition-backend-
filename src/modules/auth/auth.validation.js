@@ -1,52 +1,59 @@
-import Joi from 'joi';
+import joi from "joi";
+import { generalFields } from "../../middleware/validation.middleware.js";
+import { logoutEnum } from "../../utils/Token/token.utils.js";
 
-export const registerSchema = Joi.object({
-  email: Joi.string().email().required().messages({
-    'string.email': 'Please provide a valid email address',
-    'any.required': 'Email is required',
-  }),
-  password: Joi.string().min(8).required().messages({
-    'string.min': 'Password must be at least 8 characters',
-    'any.required': 'Password is required',
-  }),
-  confirmPassword: Joi.string().valid(Joi.ref('password')).required().messages({
-    'any.only': 'Passwords do not match',
-    'any.required': 'Confirm password is required',
-  }),
-  firstName: Joi.string().required().messages({
-    'any.required': 'First name is required',
-  }),
-  lastName: Joi.string().required().messages({
-    'any.required': 'Last name is required',
-  }),
-});
+export const signUpValidation = {
+    body:joi.object({
+        first_name:generalFields.first_name.required(),
+        last_name: generalFields.last_name.required(),
+        email: generalFields.email.required(),
+        password: generalFields.password.required(),
+        confirm_password:generalFields.confirm_password,
+        gender: generalFields.gender,
+        phone:generalFields.phone,
+        role:generalFields.role
+    }).required(),
+};
 
-export const loginSchema = Joi.object({
-  email: Joi.string().email().required().messages({
-    'string.email': 'Please provide a valid email address',
-    'any.required': 'Email is required',
-  }),
-  password: Joi.string().required().messages({
-    'any.required': 'Password is required',
-  }),
-});
+export const loginValidation = {
+    body:joi.object({
+        email: generalFields.email.required(),
+        password: generalFields.password.required(),
+    }).required(),
+};
 
-export const verifyOTPSchema = Joi.object({
-  email: Joi.string().email().required(),
-  otp: Joi.string().length(6).required().messages({
-    'string.length': 'OTP must be 6 digits',
-    'any.required': 'OTP is required',
-  }),
-});
+export const socialLoginValidation = {
+    body:joi.object({
+        idToken: joi.string().required()
+    }).required(),
+};
 
-export const refreshTokenSchema = Joi.object({
-  refreshToken: Joi.string().required().messages({
-    'any.required': 'Refresh token is required',
-  }),
-});
+export const confirmEmailValidation = {
+    body:joi.object({
+        email: generalFields.email.required(),
+        otp:generalFields.otp.required()
+    }).required(),
+};
 
-export const changePasswordSchema = Joi.object({
-  oldPassword: Joi.string().required(),
-  newPassword: Joi.string().min(8).required(),
-  confirmPassword: Joi.string().valid(Joi.ref('newPassword')).required(),
-});
+export const forgetPasswordValidation = {
+    body:joi.object({
+        email: generalFields.email.required(),
+
+    }).required(),
+};
+
+export const resetPasswordValidation = {
+    body:joi.object({
+        email: generalFields.email.required(),
+        otp:generalFields.otp.required(),
+        password: generalFields.password.required(),
+        confirm_password:generalFields.confirm_password
+    })
+};
+
+export const logoutValidation = {
+    body:joi.object({
+        flag: joi.string().valid(...Object.values(logoutEnum)).default(logoutEnum.stayloggedIn)
+    })
+    .required(),
+};

@@ -1,34 +1,33 @@
-import authService from './auth.service.js';
-import { sendSuccess, sendError, sendCreated } from '../../utils/apiResponse.js';
-import { HTTP_STATUS } from '../../config/constants.js';
-import { asyncHandler } from '../../middleware/errorHandler.js';
+import { Router } from "express";
+import * as authService from "./auth.service.js";
+import { authentication, tokenTypeEnum } from "../../middleware/authenticaion.middleware.js";
+import { validation } from "../../middleware/validation.middleware.js";
+import { 
+    confirmEmailValidation,
+    forgetPasswordValidation,
+    loginValidation,
+    logoutValidation,
+    resetPasswordValidation,
+    signUpValidation,
+    socialLoginValidation
+} from "./auth.validation.js";
 
-export const register = asyncHandler(async (req, res) => {
-  const result = await authService.register(req.body);
-  return sendCreated(res, result, 'User registered successfully');
-});
+const router = Router();
 
-export const verifyOTP = asyncHandler(async (req, res) => {
-  const { email, otp } = req.body;
-  const result = await authService.verifyOTP(email, otp);
-  return sendSuccess(res, result, result.message);
-});
+router.post('/signup', validation(signUpValidation), authService.signup);
 
-export const login = asyncHandler(async (req, res) => {
-  const { email, password } = req.body;
-  const result = await authService.login(email, password);
-  return sendSuccess(res, result, 'Login successful', HTTP_STATUS.OK);
-});
+router.post('/login',validation(loginValidation),authService.login);
 
-export const refreshToken = asyncHandler(async (req, res) => {
-  const { refreshToken } = req.body;
-  const result = await authService.refreshAccessToken(refreshToken);
-  return sendSuccess(res, result, 'Token refreshed successfully');
-});
+router.post('/logout',validation(logoutValidation),authentication({tokenType:tokenTypeEnum.access }),authService.logout);
 
-export const logout = asyncHandler(async (req, res) => {
-  const userId = req.user.userId;
-  const { refreshToken } = req.body;
-  const result = await authService.logout(userId, refreshToken);
-  return sendSuccess(res, result, result.message);
-});
+router.post('/social-login',validation(socialLoginValidation),authService.loginWithGmail);
+
+router.get('/refresh-token',authentication({tokenType:tokenTypeEnum.refresh }),authService.refreshToken);
+
+router.patch('/confirm-email',validation(confirmEmailValidation),authService.confirmEmail);
+
+router.patch('/forget-password',validation(forgetPasswordValidation),authService.forgetPassword);
+
+router.patch('/reset-password',validation(resetPasswordValidation),authService.resetPassword);
+
+export default router;

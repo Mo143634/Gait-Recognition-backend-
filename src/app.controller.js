@@ -1,0 +1,48 @@
+import authRouter from './modules/auth/auth.controller.js'
+import gaitRouter from './modules/gait/gait.routes.js'
+import analysisRouter from './modules/analysis/analysis.routes.js'
+import { connectDB } from './db/connection.js'
+import { globalErrorHandler } from './utils/multer/errorHandling.utils.js'
+import cors from 'cors'
+import { startDeleteUnactivatedUsersJob } from './utils/cron/deleteUnactivateduser.utils.js'
+import path from 'node:path'
+import * as dotenv from "dotenv"
+import { attachmentRoutingLogger } from './utils/loggers/logger.js'
+import { corsOptions } from './utils/cors/cors.js'
+import helmet from 'helmet'
+import { limiter } from './utils/multer/express-rate-limit.js'
+
+
+dotenv.config({path: path.resolve('.env')})
+
+
+const bootstrap = async (app,express) =>{
+    const port = process.env.PORT
+    app.use(express.json())
+    app.use(helmet())
+    app.use(limiter)
+    attachmentRoutingLogger(app , "/api/auth" , authRouter , "authLogs.log")
+    attachmentRoutingLogger(app , "/api/gait" , gaitRouter , "gaitLogs.log")
+    attachmentRoutingLogger(app , "/api/analysis" , analysisRouter , "analysisLogs.log")
+    await connectDB()
+    app.use(cors(corsOptions()))
+    startDeleteUnactivatedUsersJob()
+    app.get('/' , (req,res)=>{
+        res.status(200).json({
+            message:"Welcome to Gait Recognition Backend API"
+        })
+    })
+    app.use('/uploads',express.static(path.resolve('./Src/uploads')))
+    app.use('/api/auth',authRouter)
+    app.use('/api/gait',gaitRouter)
+    app.use('/api/analysis',analysisRouter)
+
+    app.all('/*dummy' , (req,res,next)=>{
+        return next(new Error("Invalid Route",{cause:404}))
+    })
+
+    app.use(globalErrorHandler)
+    app.listen(port, () => console.log(`Example app listening on port ${port}!`))
+}
+
+export default bootstrap; 

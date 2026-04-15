@@ -12,33 +12,32 @@ A production-ready Node.js backend API for the Gait Recognition System built wit
 - ✅ Rate limiting middleware
 - ✅ CORS configuration
 
-### User Management
-- ✅ User registration & login
-- ✅ Profile management
-- ✅ Profile picture upload with Cloudinary
-- ✅ User role management (admin, user, moderator)
-- ✅ User preferences management
-
-### Messaging System
-- ✅ Send/receive messages
-- ✅ Message conversations
-- ✅ Mark messages as read
-- ✅ Edit messages
-- ✅ Delete messages
-- ✅ Unread message count
-- ✅ File attachments support
+### Gait Recognition Features
+- ✅ Upload gait video files (MP4, MPEG, AVI, MOV)
+- ✅ Cloudinary cloud storage integration
+- ✅ Video metadata tracking (duration, size, file info)
+- ✅ Gait profile management (create, read, update, delete)
+- ✅ User-scoped profile isolation
+- ✅ Gait analysis request submission
+- ✅ External AI API integration
+- ✅ Analysis result storage with confidence scores
+- ✅ Biomechanical metrics storage
+- ✅ Analysis history tracking
+- ✅ Real-time processing status
+- ✅ Analysis statistics and aggregation
 
 ### File Management
-- ✅ Multer file upload
-- ✅ Cloudinary integration
-- ✅ File validation
+- ✅ Multer file upload with validation
+- ✅ Cloudinary video storage integration
+- ✅ Automatic cleanup on deletion
+- ✅ File size limits (up to 500MB for videos)
 
 ### API Features
 - ✅ Comprehensive error handling
 - ✅ Request validation with Joi
 - ✅ Async/await pattern
 - ✅ API response standardization
-- ✅ Health check endpoint
+- ✅ Pagination support
 - ✅ Detailed API documentation with comments
 
 ## 🛠️ Tech Stack
@@ -52,6 +51,7 @@ A production-ready Node.js backend API for the Gait Recognition System built wit
 - **File Upload**: Multer
 - **Cloud Storage**: Cloudinary
 - **Validation**: Joi
+- **HTTP Client**: Axios
 - **CORS**: cors
 - **Rate Limiting**: express-rate-limit
 - **Development**: Nodemon
@@ -61,47 +61,50 @@ A production-ready Node.js backend API for the Gait Recognition System built wit
 ```
 gait-recognition-backend/
 ├── src/
-│   ├── config/
-│   │   ├── database.js          # MongoDB connection
-│   │   ├── cloudinary.js        # Cloudinary setup
-│   │   └── constants.js         # App constants
+│   ├── db/
+│   │   ├── connection.js        # MongoDB connection
+│   │   ├── dbService.js         # Database utilities
+│   │   └── models/
+│   │       ├── user.model.js    # User schema with gait profiles
+│   │       └── token.model.js   # Token blacklist model
 │   ├── middleware/
-│   │   ├── authentication.js    # JWT authentication
-│   │   ├── authorization.js     # RBAC middleware
-│   │   ├── validation.js        # Request validation
-│   │   ├── errorHandler.js      # Global error handling
-│   │   ├── rateLimiter.js       # Rate limiting
-│   │   └── fileUpload.js        # Multer configuration
+│   │   ├── authenticaion.middleware.js   # JWT authentication
+│   │   └── validation.middleware.js      # Request validation
 │   ├── modules/
 │   │   ├── auth/
-│   │   │   ├── auth.model.js
 │   │   │   ├── auth.controller.js
 │   │   │   ├── auth.service.js
-│   │   │   ├── auth.routes.js
 │   │   │   └── auth.validation.js
-│   │   ├── user/
-│   │   │   ├── user.model.js
-│   │   │   ├── user.controller.js
-│   │   │   ├── user.service.js
-│   │   │   ├── user.routes.js
-│   │   │   └── user.validation.js
-│   │   └── message/
-│   │       ├── message.model.js
-│   │       ├── message.controller.js
-│   │       ├── message.service.js
-│   │       ├── message.routes.js
-│   │       └── message.validation.js
+│   │   ├── gait/                [NEW]
+│   │   │   ├── gait.controller.js
+│   │   │   ├── gait.model.js
+│   │   │   ├── gait.routes.js
+│   │   │   ├── gait.service.js
+│   │   │   └── gait.validation.js
+│   │   └── analysis/            [NEW]
+│   │       ├── analysis.model.js
+│   │       ├── analysis.routes.js
+│   │       ├── analysis.service.js
+│   │       └── analysis.validation.js
 │   ├── utils/
-│   │   ├── generateToken.js     # JWT utilities
-│   │   ├── sendEmail.js         # Email service
-│   │   ├── apiResponse.js       # Response helper
-│   │   └── encryption.js        # Encryption utilities
+│   │   ├── cors/
+│   │   │   └── cors.js
+│   │   ├── cron/                # Scheduled tasks
+│   │   ├── Email/               # Email utilities
+│   │   ├── Encryption/          # Encryption utilities
+│   │   ├── Event/               # Event emitters
+│   │   ├── Hashing/             # Password hashing
+│   │   ├── loggers/             # Logging utilities
+│   │   ├── multer/              # File upload configuration
+│   │   └── Token/               # JWT utilities
+│   ├── app.controller.js        # Express app setup
 │   └── index.js                 # Entry point
 ├── uploads/                      # File uploads directory
 ├── .env.example                 # Environment variables template
 ├── .gitignore                   # Git ignore rules
 ├── package.json                 # Dependencies
-└── README.md                    # Documentation
+├── README.md                    # Documentation
+└── REFACTORING_SUMMARY.md       # Detailed refactoring changes
 ```
 
 ## 🚀 Getting Started
@@ -109,6 +112,7 @@ gait-recognition-backend/
 ### Prerequisites
 - Node.js >= 14.x
 - MongoDB (local or Atlas)
+- Cloudinary account
 - npm or yarn
 
 ### Installation
@@ -133,21 +137,32 @@ Edit `.env` and update the following:
 
 ```env
 # Server
-PORT=5000
-NODE_ENV=development
+PORT=3000
+MOOD=DEV
 
 # Database
 MONGODB_URI=mongodb://localhost:27017/gait-recognition
 
-# JWT
-JWT_SECRET=your_super_secret_jwt_key_change_this_in_production
-JWT_EXPIRY=7d
+# JWT Signatures
+ACCESS_USER_SIGNATURE_TOKEN=your_access_user_signature
+REFRESH_USER_SIGNATURE_TOKEN=your_refresh_user_signature
+ACCESS_ADMIN_SIGNATURE_TOKEN=your_access_admin_signature
+REFRESH_ADMIN_SIGNATURE_TOKEN=your_refresh_admin_signature
 
 # Email (Gmail SMTP)
-SMTP_HOST=smtp.gmail.com
-SMTP_PORT=587
-SMTP_USER=your_email@gmail.com
-SMTP_PASSWORD=your_app_specific_password
+EMAIL_HOST=smtp.gmail.com
+EMAIL_PORT=587
+EMAIL_USER=your_email@gmail.com
+EMAIL_PASS=your_app_specific_password
+
+# Cloudinary
+CLOUD_NAME=your_cloudinary_cloud_name
+API_KEY=your_cloudinary_api_key
+API_SECRET=your_cloudinary_api_secret
+
+# External AI API
+AI_API_URL=http://localhost:5000/api/analyze
+```
 
 # Cloudinary
 CLOUDINARY_CLOUD_NAME=your_cloud_name
