@@ -15,19 +15,12 @@ export const roles = {
     securityOfficer:"SECURITY_OFFICER"
 };
 export const userSchema =new Schema({
-    first_name:{
+    fullname: {
         type: String,
         required: true,
         trim: true,
-        minLength: [3,"First name must be at least 3 characters"],
-        maxLength:[20,"First name must be at most 20 characters"]
-    },
-    last_name:{
-        type: String,
-        required: true,
-        trim: true,
-        minLength: [3,"Last name must be at least 3 characters"],
-        maxLength:[20,"Last name must be at most 20 characters"]
+        minLength: [3, "Full name must be at least 3 characters"],
+        maxLength: [40, "Full name must be at most 40 characters"]
     },
     email: {
         type: String,
