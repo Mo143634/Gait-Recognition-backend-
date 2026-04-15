@@ -366,3 +366,100 @@ export const resetPassword = async(req,res,next)=>{
     message:"Password Reset Successfully"
   });
 };
+
+export const resendEmailOtp = async(req,res,next)=>{
+  const { email } = req.body;
+  
+  const user = await dbService.findOne({
+    model: UserModel,
+    filter:{
+      email,
+      confirm_email: false,
+      provider: providers.system
+    }
+  });
+  
+  if(!user){
+    return next(new Error("User not found or email already confirmed",{ cause:404 }));
+  }
+
+  // Check if account is locked
+  if(user.lock_until && user.lock_until > Date.now()){
+    return next(new Error("Account is locked. Please try again later",{ cause:403 }));
+  }
+
+  // Generate new OTP
+  const otp = customAlphabet("0123456789", 6)();
+  const hashOtp = await hash({plainText:otp});
+  const otp_expired_at = new Date(Date.now() + 2 * 60 * 1000);
+
+  // Update user with new OTP
+  await dbService.updateOne({
+    model: UserModel,
+    filter:{ email },
+    data:{
+      confirm_email_otp: hashOtp,
+      otp_expired_at,
+      field_attempts: 0,
+      lock_until: null
+    }
+  });
+
+  // Send OTP via email
+  emailEvent.emit("confirmEmail",{ to:email , otp , fullname:user.fullname });
+
+  return successResponse({
+    res,
+    statusCode:200,
+    message:"OTP resent to your email successfully"
+  });
+};
+
+export const resendForgotPasswordOtp = async(req,res,next)=>{
+  const { email } = req.body;
+  
+  const user = await dbService.findOne({
+    model: UserModel,
+    filter:{
+      email,
+      provider: providers.system,
+      confirm_email:{$exists:true},
+      freezed_at:null
+    }
+  });
+  
+  if(!user){
+    return next(new Error("User not found",{ cause:404 }));
+  }
+
+  // Check if account is locked
+  if(user.lock_until && user.lock_until > Date.now()){
+    return next(new Error("Account is locked. Please try again later",{ cause:403 }));
+  }
+
+  // Generate new OTP
+  const otp = customAlphabet("0123456789", 6)();
+  const hashOtp = await hash({plainText:otp});
+  const otp_expired_at = new Date(Date.now() + 2 * 60 * 1000);
+
+  // Update user with new OTP
+  await dbService.updateOne({
+    model: UserModel,
+    filter:{ email },
+    data:{
+      forget_password_otp: hashOtp,
+      otp_expired_at,
+      field_attempts: 0,
+      lock_until: null
+    }
+  });
+
+  // Send OTP via email
+  emailEvent.emit("forgetPassword",{ to:email , otp , fullname:user.fullname });
+
+  return successResponse({
+    res,
+    statusCode:200,
+    message:"OTP resent to your email successfully"
+  });
+};

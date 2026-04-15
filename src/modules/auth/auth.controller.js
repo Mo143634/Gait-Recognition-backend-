@@ -9,7 +9,9 @@ import {
     logoutValidation,
     resetPasswordValidation,
     signUpValidation,
-    socialLoginValidation
+    socialLoginValidation,
+    resendEmailOtpValidation,
+    resendForgotPasswordOtpValidation
 } from "./auth.validation.js";
 
 const router = Router();
@@ -26,7 +28,11 @@ router.get('/refresh-token',authentication({tokenType:tokenTypeEnum.refresh }),a
 
 router.patch('/confirm-email',validation(confirmEmailValidation),authService.confirmEmail);
 
+router.post('/resend-email-otp',validation(resendEmailOtpValidation),authService.resendEmailOtp);
+
 router.patch('/forget-password',validation(forgetPasswordValidation),authService.forgetPassword);
+
+router.post('/resend-forgot-password-otp',validation(resendForgotPasswordOtpValidation),authService.resendForgotPasswordOtp);
 
 router.patch('/reset-password',validation(resetPasswordValidation),authService.resetPassword);
 

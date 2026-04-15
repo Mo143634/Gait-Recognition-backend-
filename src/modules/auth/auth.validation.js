@@ -56,3 +56,15 @@ export const logoutValidation = {
     })
     .required(),
 };
+
+export const resendEmailOtpValidation = {
+    body:joi.object({
+        email: generalFields.email.required()
+    }).required(),
+};
+
+export const resendForgotPasswordOtpValidation = {
+    body:joi.object({
+        email: generalFields.email.required()
+    }).required(),
+};
