@@ -21,8 +21,7 @@ POST /auth/signup
 Content-Type: application/json
 
 {
-  "first_name": "John",
-  "last_name": "Doe",
+  "fullname": "John Doe",
   "email": "john@example.com",
   "password": "SecurePassword123!",
   "gender": "male",
@@ -37,8 +36,7 @@ Content-Type: application/json
   "message": "User Created Successfuly",
   "data": {
     "_id": "507f1f77bcf86cd799439011",
-    "first_name": "John",
-    "last_name": "Doe",
+    "fullname": "John Doe",
     "email": "john@example.com",
     "confirm_email": false
   }

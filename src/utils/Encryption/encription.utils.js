@@ -1,4 +1,6 @@
-import CryptoJS from "crypto-js";
+import { createRequire } from "module";
+const require = createRequire(import.meta.url);
+const CryptoJS = require("crypto-js");
 
 export const encrypt = (plainText) =>{
     return CryptoJS.AES.encrypt(plainText, process.env.ENCRYPTION_KEY).toString();

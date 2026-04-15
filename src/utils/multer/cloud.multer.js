@@ -19,7 +19,7 @@ export const cloudFileUpload = ({validation = []})=>{
     })
 }
 
-export const cloudinaryUpload = ({customPath = "general", validation = []}) => {
+export const cloudinaryUpload = ({customPath = "general", validation = []}={}) => {
     let basePath = `uploads/${customPath}`;
 
     const storage = multer.diskStorage({
