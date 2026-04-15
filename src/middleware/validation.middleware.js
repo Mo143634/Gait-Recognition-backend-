@@ -63,10 +63,10 @@ export const generalFields = {
 
     role: joi
         .string()
-        .valid("USER", "ADMIN")
+        .valid("USER", "ADMIN", "RESEARCHER", "SECURITY_OFFICER")
         .default("USER")
         .messages({
-            "any.only": "Role must be either 'USER' or 'ADMIN'"
+            "any.only": "Role must be one of: USER, ADMIN, RESEARCHER, or SECURITY_OFFICER"
         }),
 
     phone: joi

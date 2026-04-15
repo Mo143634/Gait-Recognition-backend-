@@ -30,6 +30,12 @@ Content-Type: application/json
 }
 ```
 
+**Available Roles:**
+- `USER` - Regular user (default)
+- `ADMIN` - Administrator
+- `RESEARCHER` - Researcher
+- `SECURITY_OFFICER` - Security Officer
+
 **Response (201):**
 ```json
 {
@@ -80,6 +86,95 @@ Authorization: Bearer <refresh_token>
     "accessToken": "eyJhbGciOiJIUzI1NiIs...",
     "refreshToken": "eyJhbGciOiJIUzI1NiIs..."
   }
+}
+```
+
+### 4. Confirm Email
+```http
+PATCH /auth/confirm-email
+Content-Type: application/json
+
+{
+  "email": "john@example.com",
+  "otp": "123456"
+}
+```
+
+**Response (200):**
+```json
+{
+  "message": "Email confirmed successfully"
+}
+```
+
+### 5. Resend Email OTP
+```http
+POST /auth/resend-email-otp
+Content-Type: application/json
+
+{
+  "email": "john@example.com"
+}
+```
+
+**Response (200):**
+```json
+{
+  "message": "OTP resent to your email successfully"
+}
+```
+
+### 6. Forget Password
+```http
+PATCH /auth/forget-password
+Content-Type: application/json
+
+{
+  "email": "john@example.com"
+}
+```
+
+**Response (200):**
+```json
+{
+  "message": "OTP sent to your email successfully"
+}
+```
+
+### 7. Resend Forgot Password OTP
+```http
+POST /auth/resend-forgot-password-otp
+Content-Type: application/json
+
+{
+  "email": "john@example.com"
+}
+```
+
+**Response (200):**
+```json
+{
+  "message": "OTP resent to your email successfully"
+}
+```
+
+### 8. Reset Password
+```http
+PATCH /auth/reset-password
+Content-Type: application/json
+
+{
+  "email": "john@example.com",
+  "otp": "123456",
+  "password": "NewPassword123!",
+  "confirm_password": "NewPassword123!"
+}
+```
+
+**Response (200):**
+```json
+{
+  "message": "Password Reset Successfully"
 }
 ```
 
