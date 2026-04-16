@@ -14,7 +14,7 @@ export const signup = async (req, res, next) => {
   const { fullname, password, email, gender, phone , role } = req.body;
 
   if (await findOne({ model: UserModel, filter: { email } })) 
-    return next(new Error("a", { cause: 409 }));
+    return next(new Error("User already exists", { cause: 409 }));
 
   const hashedPassword = await hash({plainText: password});
   const encryptionPhone = encrypt(phone);
@@ -90,9 +90,18 @@ export const login = async (req, res, next) => {
 
   return successResponse({  
     res,
-    statusCode: 201,
+    statusCode: 200,
     message: "Login successfully",
-    data: {newCredentials},
+    data: { 
+      accessToken: newCredentials.accessToken,
+      refreshToken: newCredentials.refreshToken,
+      user: {
+        _id: user._id,
+        fullname: user.fullname,
+        email: user.email,
+        role: user.role
+      }
+    },
   });
 };
 
@@ -200,7 +209,7 @@ export const confirmEmail = async (req,res,next)=>{
   });
 };
 
-async function verfiyGoogleAccount({ idToken }) {
+async function verifyGoogleAccount({ idToken }) {
   const client = new OAuth2Client();
   const ticket = await client.verifyIdToken({
     idToken,
@@ -226,28 +235,14 @@ export const loginWithGmail = async (req, res, next) => {
   });
 
   if (user) {
-    if (user.provider === providerEnum.google) {
-      const access_token = generateToken({
-        payload: { _id: user._id },
-        options: {
-          issuer: "GaitRecognitionApp",
-          subject: "Authentication",
-        },
-      });
-
-      const refresh_token = generateToken({
-        payload: { _id: user._id },
-        options: {
-          issuer: "GaitRecognitionApp",
-          subject: "Authentication",
-        },
-      });
+    if (user.provider === providers.google) {
+      const { accessToken, refreshToken } = await getNewLoginCredentials(user);
 
       return successResponse({
         res,
         statusCode: 200,
         message: "Login Successfully",
-        data: { access_token, refresh_token },
+        data: { accessToken, refreshToken },
       });
     }
   }
@@ -259,33 +254,19 @@ export const loginWithGmail = async (req, res, next) => {
         email,
         fullname: `${given_name} ${family_name}`,
         photo: picture,
-        provider: providerEnum.google,
-        confirm_email: Date.now(),
+        provider: providers.google,
+        confirm_email: true,
       },
     ],
   });
 
-  const access_token = generateToken({
-    payload: { _id: newUser._id },
-    options: {
-      issuer: "GaitRecognitionApp",
-      subject: "Authentication",
-    },
-  });
-
-  const refresh_token = generateToken({
-    payload: { _id: newUser._id },
-    options: {
-      issuer: "GaitRecognitionApp",
-      subject: "Authentication",
-    },
-  });
+  const { accessToken, refreshToken } = await getNewLoginCredentials(newUser[0]);
 
   return successResponse({
     res,
     statusCode: 201,
     message: "User Created Successfully",
-    data: { access_token, refresh_token },
+    data: { accessToken, refreshToken },
   });
 };
 
@@ -364,7 +345,7 @@ export const resetPassword = async(req,res,next)=>{
     data:{
       password:hashedPassword,
       $unset:{ forget_password_otp: "" , otp_expired_at: "" },
-      inc:{ __v:1 }
+      $inc:{ __v:1 }
     }
   });
 

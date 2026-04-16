@@ -288,7 +288,7 @@ POST /gait/upload
 Authorization: Bearer <token>
 Content-Type: multipart/form-data
 
-file: <video_file> (MP4, MPEG, AVI, MOV - max 500MB)
+video: <video_file> (MP4, MPEG, AVI, MOV - max 500MB)
 description: "Optional description of the gait video"
 ```
 
