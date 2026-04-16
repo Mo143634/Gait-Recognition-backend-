@@ -230,7 +230,7 @@ export const loginWithGmail = async (req, res, next) => {
       const access_token = generateToken({
         payload: { _id: user._id },
         options: {
-          issuer: "SarahaApp",
+          issuer: "GaitRecognitionApp",
           subject: "Authentication",
         },
       });
@@ -238,7 +238,7 @@ export const loginWithGmail = async (req, res, next) => {
       const refresh_token = generateToken({
         payload: { _id: user._id },
         options: {
-          issuer: "SarahaApp",
+          issuer: "GaitRecognitionApp",
           subject: "Authentication",
         },
       });
@@ -268,7 +268,7 @@ export const loginWithGmail = async (req, res, next) => {
   const access_token = generateToken({
     payload: { _id: newUser._id },
     options: {
-      issuer: "SarahaApp",
+      issuer: "GaitRecognitionApp",
       subject: "Authentication",
     },
   });
@@ -276,7 +276,7 @@ export const loginWithGmail = async (req, res, next) => {
   const refresh_token = generateToken({
     payload: { _id: newUser._id },
     options: {
-      issuer: "SarahaApp",
+      issuer: "GaitRecognitionApp",
       subject: "Authentication",
     },
   });

@@ -8,7 +8,7 @@ export const emailEvent = new EventEmitter();
 emailEvent.on("confirmEmail", async (data) => {
     await sendEmail({
         to: data.to,
-        text: "Hello From Saraha App",
+        text: "Hello From Gait Recognition App",
         html: template(data.otp,data.fullname),
         subject: emailSubject.confirmEmail,
     });

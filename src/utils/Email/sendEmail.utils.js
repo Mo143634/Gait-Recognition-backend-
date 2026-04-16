@@ -1,7 +1,7 @@
 import nodemailer from"nodemailer";
 
 
-export async function sendEmail({to="", subject="saraha application", text="", html="", cc="", bcc="", attachments=[]}) 
+export async function sendEmail({to="", subject="Gait Recognition Application", text="", html="", cc="", bcc="", attachments=[]}) 
 {
     const transporter = nodemailer.createTransport({
     service:"gmail",
@@ -12,7 +12,7 @@ export async function sendEmail({to="", subject="saraha application", text="", h
     });
 
     const info = await transporter.sendMail({
-        from: `"Saraha_App" <${process.env.EMAIL}>`,
+        from: `"Gait Recognition App" <${process.env.EMAIL}>`,
         to,
         subject,
         text,
@@ -28,5 +28,5 @@ export async function sendEmail({to="", subject="saraha application", text="", h
 export const emailSubject = {
     confirmEmail: "Confirm Your Email",
     resetPassword:"Reset Your Password",
-    welcome:"Welcome To Saraha APP"
+    welcome:"Welcome To Gait Recognition"
 }
