@@ -34,7 +34,7 @@ const bootstrap = async (app,express) =>{
             message:"Welcome to Gait Recognition Backend API"
         })
     })
-    app.use('/uploads',express.static(path.resolve('./Src/uploads')))
+    app.use('/uploads', express.static(path.resolve(process.env.UPLOAD_PATH || 'uploads')))
     app.use('/api/auth',authRouter)
     app.use('/api/gait',gaitRouter)
     app.use('/api/analysis',analysisRouter)

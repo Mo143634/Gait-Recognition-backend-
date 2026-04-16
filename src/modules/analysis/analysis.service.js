@@ -30,26 +30,58 @@ export const runAnalysis = async (req, res, next) => {
 
         await analysis.save();
 
-        try {
-            // Call external AI API
-            const aiResponse = await axios.post(AI_API_URL, {
-                video_url: gaitProfile.video_url,
-                analysis_id: analysis._id.toString()
-            }, {
-                timeout: 120000 // 2 minute timeout
-            });
+        // Enhanced AI API call with retries and better error handling
+        let aiResponse;
+        let attempts = 0;
+        const maxAttempts = 3;
 
-            if (aiResponse.status === 200 || aiResponse.status === 202) {
-                analysis.status = "completed";
-                analysis.result = aiResponse.data.result || {};
-                analysis.confidence_score = aiResponse.data.confidence_score || 0;
-                analysis.ai_response = aiResponse.data;
-                analysis.completed_at = new Date();
+        while (attempts < maxAttempts) {
+            try {
+                aiResponse = await axios.post(AI_API_URL, {
+                    video_url: gaitProfile.video_url,
+                    analysis_id: analysis._id.toString()
+                }, {
+                    timeout: 120000 // 2 minute timeout
+                });
+                break; // Success, exit loop
+            } catch (error) {
+                attempts++;
+                console.error(`AI API Attempt ${attempts} failed: ${error.message}`);
+                
+                // Only retry on network errors or 5xx server errors
+                const isRetryable = !error.response || (error.response.status >= 500);
+                if (attempts >= maxAttempts || !isRetryable) {
+                    analysis.status = "failed";
+                    analysis.error_message = error.response?.data?.message || error.message || "Failed to process analysis";
+                    analysis.ai_response = error.response?.data;
+                    break;
+                }
+                // Wait before retrying (exponential backoff)
+                await new Promise(resolve => setTimeout(resolve, attempts * 2000));
             }
-        } catch (aiError) {
-            console.error("AI API Error:", aiError.message);
-            analysis.status = "failed";
-            analysis.error_message = aiError.message || "Failed to process analysis";
+        }
+
+        if (aiResponse) {
+            if (aiResponse.status === 200) {
+                // Check if the AI returned an application-level error despite the 200 OK
+                if (aiResponse.data.error || aiResponse.data.status === "error") {
+                    analysis.status = "failed";
+                    analysis.error_message = aiResponse.data.error || aiResponse.data.message || "AI API returned an error";
+                } else {
+                    analysis.status = "completed";
+                    analysis.result = aiResponse.data.result || {};
+                    analysis.confidence_score = aiResponse.data.confidence_score || 0;
+                    analysis.completed_at = new Date();
+                }
+            } else if (aiResponse.status === 202) {
+                // 202 Accepted means it's still being processed
+                analysis.status = "processing";
+                analysis.message = "Analysis is being processed by the AI service.";
+            } else {
+                analysis.status = "failed";
+                analysis.error_message = `Unexpected AI API response status: ${aiResponse.status}`;
+            }
+            analysis.ai_response = aiResponse.data;
         }
 
         analysis.processing_time_ms = Date.now() - startTime;

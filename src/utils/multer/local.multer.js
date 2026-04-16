@@ -13,21 +13,18 @@ export const fileValidation = {
     ]
 }
 export const localFileUpload = ({customPath = "general" , validation = []}={})=>{
-    let basePath = `uploads/${customPath}`
-    
     const storage = multer.diskStorage({
-        destination:(req,file,cb)=>{
-            if(req.user?._id) basePath += `/${req.user._id}`
-
-            const fullPath = path.resolve(`./Src/${basePath}`)
+        destination: (req, file, cb) => {
+            const uploadDir = process.env.UPLOAD_PATH || 'uploads'
+            const fullPath = path.resolve(uploadDir, customPath, req.user?._id || 'general')
 
             if(!fs.existsSync(fullPath)) fs.mkdirSync(fullPath , {recursive:true})
-            cb(null , path.resolve(fullPath))
+            cb(null , fullPath)
         },
         filename:(req,file,cb)=>{    
-
             const uniqueFileName = Date.now() + "__" + Math.random() + "__" + file.originalname
-            file.finalPath = `${basePath}/${uniqueFileName}`
+            const uploadDir = process.env.UPLOAD_PATH || 'uploads'
+            file.finalPath = `${uploadDir}/${customPath}/${req.user?._id || 'general'}/${uniqueFileName}`
             cb(null,uniqueFileName)
         }
     });

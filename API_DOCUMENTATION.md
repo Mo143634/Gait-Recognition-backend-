@@ -432,6 +432,8 @@ Content-Type: application/json
 ```
 
 **Response (201):**
+Note: The analysis may be returned as `completed`, `processing`, or `failed` depending on the AI service response.
+
 ```json
 {
   "message": "Analysis request submitted successfully",
@@ -440,13 +442,19 @@ Content-Type: application/json
     "user_id": "507f1f77bcf86cd799439011",
     "gait_profile_id": "507f1f77bcf86cd799439012",
     "status": "processing",
-    "confidence_score": null,
+    "confidence_score": 0,
     "requested_at": "2024-01-15T10:35:00.000Z",
     "completed_at": null,
     "processing_time_ms": 150
   }
 }
 ```
+
+**Status Values:**
+- `pending`: Initial state.
+- `processing`: Analysis is currently being handled by the AI service (often returned when the service is async).
+- `completed`: Analysis finished successfully.
+- `failed`: Analysis failed (check `error_message` in the data object).
 
 ### 2. Get Analysis Result
 ```http
@@ -691,6 +699,22 @@ curl -X POST http://localhost:3000/api/gait/upload \
 4. **Check Status** → GET /analysis/:analysisId (may be processing)
 5. **Get Results** → GET /analysis/:analysisId (when completed)
 6. **View History** → GET /analysis or GET /analysis/stats/summary
+
+---
+
+## ⚙️ Environment Configuration
+
+To ensure all features work correctly, the following environment variables are required in your `.env` file:
+
+### Email Setup (OTP)
+Used for sending verification codes via Gmail.
+- `EMAIL_USER`: Your Gmail address (e.g., `user@gmail.com`).
+- `EMAIL_PASS`: Your **Gmail App Password** (Generated in Google Account settings).
+
+### Storage Setup
+Used for gait video uploads and profile pictures.
+- `UPLOAD_PATH`: Path to the uploads directory (default: `uploads`).
+- `CLOUD_NAME`, `API_KEY`, `API_SECRET`: Cloudinary credentials for cloud storage.
 
 ---
 
