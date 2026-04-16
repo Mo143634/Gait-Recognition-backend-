@@ -43,7 +43,7 @@ export const signup = async (req, res, next) => {
   return successResponse({
     res,
     statusCode: 201,
-    message: "User Created Successfully",
+    message: "Signup successful. Verification OTP sent to Gmail.",
     data: {
       _id: user._id,
       fullname: user.fullname,
@@ -51,7 +51,7 @@ export const signup = async (req, res, next) => {
       gender: user.gender,
       phone: user.phone,
       role: user.role,
-      message: "Please check your email to confirm your account"
+      message: "Please check your Gmail inbox for the 6-digit verification code."
     },
   });
 };

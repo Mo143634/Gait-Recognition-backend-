@@ -39,7 +39,7 @@ Content-Type: application/json
 **Response (201):**
 ```json
 {
-  "message": "User Created Successfully",
+  "message": "Signup successful. Verification OTP sent to Gmail.",
   "data": {
     "_id": "507f1f77bcf86cd799439011",
     "fullname": "John Doe",
@@ -47,7 +47,7 @@ Content-Type: application/json
     "gender": "male",
     "phone": "+1234567890",
     "role": "USER",
-    "message": "Please check your email to confirm your account"
+    "message": "Please check your Gmail inbox for the 6-digit verification code."
   }
 }
 ```
