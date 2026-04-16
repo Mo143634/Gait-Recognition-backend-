@@ -1,6 +1,7 @@
 import authRouter from './modules/auth/auth.controller.js'
 import gaitRouter from './modules/gait/gait.routes.js'
 import analysisRouter from './modules/analysis/analysis.routes.js'
+import userRouter from './modules/user/user.controller.js'
 import { connectDB } from './db/connection.js'
 import { globalErrorHandler } from './utils/multer/errorHandling.utils.js'
 import cors from 'cors'
@@ -24,6 +25,7 @@ const bootstrap = async (app,express) =>{
     attachmentRoutingLogger(app , "/api/auth" , authRouter , "authLogs.log")
     attachmentRoutingLogger(app , "/api/gait" , gaitRouter , "gaitLogs.log")
     attachmentRoutingLogger(app , "/api/analysis" , analysisRouter , "analysisLogs.log")
+    attachmentRoutingLogger(app , "/api/user" , userRouter , "userLogs.log")
     await connectDB()
     app.use(cors(corsOptions()))
     startDeleteUnactivatedUsersJob()
@@ -36,6 +38,7 @@ const bootstrap = async (app,express) =>{
     app.use('/api/auth',authRouter)
     app.use('/api/gait',gaitRouter)
     app.use('/api/analysis',analysisRouter)
+    app.use('/api/user',userRouter)
 
     app.all('/*dummy' , (req,res,next)=>{
         return next(new Error("Invalid Route",{cause:404}))

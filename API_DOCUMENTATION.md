@@ -75,7 +75,50 @@ Content-Type: application/json
 }
 ```
 
-### 3. Refresh Token
+### 3. User Logout
+```http
+POST /auth/logout
+Authorization: Bearer <access_token>
+Content-Type: application/json
+
+{
+  "flag": "single" 
+}
+```
+
+**Logout Flags:**
+- `single` - Logout from current device (default)
+- `all_devices` - Logout from all devices (invalidates all current sessions)
+
+**Response (200/201):**
+```json
+{
+  "message": "Logout successfully"
+}
+```
+
+### 4. Social Login (Gmail)
+```http
+POST /auth/social-login
+Content-Type: application/json
+
+{
+  "idToken": "google-id-token-here"
+}
+```
+
+**Response (200/201):**
+```json
+{
+  "message": "Login Successfully",
+  "data": {
+    "access_token": "eyJhbGciOiJIUzI1NiIs...",
+    "refresh_token": "eyJhbGciOiJIUzI1NiIs..."
+  }
+}
+```
+
+### 5. Refresh Token
 ```http
 GET /auth/refresh-token
 Authorization: Bearer <refresh_token>
@@ -92,7 +135,7 @@ Authorization: Bearer <refresh_token>
 }
 ```
 
-### 4. Confirm Email
+### 6. Confirm Email
 ```http
 PATCH /auth/confirm-email
 Content-Type: application/json
@@ -110,7 +153,7 @@ Content-Type: application/json
 }
 ```
 
-### 5. Resend Email OTP
+### 7. Resend Email OTP
 ```http
 POST /auth/resend-email-otp
 Content-Type: application/json
@@ -127,7 +170,7 @@ Content-Type: application/json
 }
 ```
 
-### 6. Forget Password
+### 8. Forget Password
 ```http
 PATCH /auth/forget-password
 Content-Type: application/json
@@ -144,7 +187,7 @@ Content-Type: application/json
 }
 ```
 
-### 7. Resend Forgot Password OTP
+### 9. Resend Forgot Password OTP
 ```http
 POST /auth/resend-forgot-password-otp
 Content-Type: application/json
@@ -161,7 +204,7 @@ Content-Type: application/json
 }
 ```
 
-### 8. Reset Password
+### 10. Reset Password
 ```http
 PATCH /auth/reset-password
 Content-Type: application/json
@@ -178,6 +221,60 @@ Content-Type: application/json
 ```json
 {
   "message": "Password Reset Successfully"
+}
+```
+
+---
+
+## 👤 User Profile Endpoints
+
+### 1. Get User Profile
+```http
+GET /user/profile
+Authorization: Bearer <access_token>
+```
+
+**Response (200):**
+```json
+{
+  "message": "Profile retrieved successfully",
+  "data": {
+    "_id": "507f1f77bcf86cd799439011",
+    "fullname": "John Doe",
+    "email": "john@example.com",
+    "gender": "male",
+    "phone": "+1234567890",
+    "role": "USER",
+    "profile_Image": "https://res.cloudinary.com/..."
+  }
+}
+```
+
+### 2. Update User Profile
+```http
+PATCH /user
+Authorization: Bearer <access_token>
+Content-Type: multipart/form-data
+
+fullname: "John Updated"
+gender: "male"
+phone: "+1987654321"
+image: <new_profile_image_file> (Optional)
+```
+
+**Response (200):**
+```json
+{
+  "message": "Profile updated successfully",
+  "data": {
+    "_id": "507f1f77bcf86cd799439011",
+    "fullname": "John Updated",
+    "email": "john@example.com",
+    "gender": "male",
+    "phone": "+1987654321",
+    "role": "USER",
+    "profile_Image": "https://res.cloudinary.com/..."
+  }
 }
 ```
 
