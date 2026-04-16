@@ -39,7 +39,7 @@ Content-Type: application/json
 **Response (201):**
 ```json
 {
-  "message": "User Created Successfuly",
+  "message": "User Created Successfully",
   "data": {
     "_id": "507f1f77bcf86cd799439011",
     "fullname": "John Doe",
@@ -112,9 +112,18 @@ Content-Type: application/json
 {
   "message": "Login Successfully",
   "data": {
-    "access_token": "eyJhbGciOiJIUzI1NiIs...",
-    "refresh_token": "eyJhbGciOiJIUzI1NiIs..."
+    "accessToken": "eyJhbGciOiJIUzI1NiIs...",
+    "refreshToken": "eyJhbGciOiJIUzI1NiIs..."
   }
+}
+```
+
+**Error (409 Conflict):**
+- Occurs if the email is already registered using a different provider (e.g., SYSTEM).
+```json
+{
+  "message": "Something went wrong",
+  "error": "Email already registered with another provider"
 }
 ```
 
@@ -127,7 +136,7 @@ Authorization: Bearer <refresh_token>
 **Response (200):**
 ```json
 {
-  "message": "Token refreshed",
+  "message": "New Credentials Created Successfully",
   "data": {
     "accessToken": "eyJhbGciOiJIUzI1NiIs...",
     "refreshToken": "eyJhbGciOiJIUzI1NiIs..."

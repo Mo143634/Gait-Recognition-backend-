@@ -25,7 +25,7 @@ export const signup = async (req, res, next) => {
   const otp_expired_at = new Date(Date.now()+2 * 60 * 1000);
   emailEvent.emit("confirmEmail",{to:email , otp , fullname });
 
-  const user = await create({
+  const users = await create({
     model: UserModel,
     data:[{
       fullname,
@@ -38,13 +38,12 @@ export const signup = async (req, res, next) => {
       otp_expired_at
     }],
   });
-  user.field_attempts = 0;
-  user.lock_until = null;
+  const user = users[0];
 
   return successResponse({
     res,
     statusCode: 201,
-    message: "User Created Successfuly",
+    message: "User Created Successfully",
     data: {
       _id: user._id,
       fullname: user.fullname,
@@ -121,12 +120,14 @@ export const logout = async (req, res, next) => {
       break;
 
     default:
+      // Calculate remaining lifetime of the token (assuming exp is in seconds)
+      const remainingSeconds = req.decoded.exp - Math.floor(Date.now() / 1000);
       await dbService.create({
         model: TokenModel,
         data: {
           jti: req.decoded.jti,
           userId: req.user._id,
-          expireIn: Date.now() - req.decoded.exp
+          expireIn: remainingSeconds > 0 ? remainingSeconds : 0
         }
       });
       status = 201;
@@ -222,8 +223,8 @@ async function verifyGoogleAccount({ idToken }) {
 export const loginWithGmail = async (req, res, next) => {
   const { idToken } = req.body;
 
-  const { email, email_verified, picture, given_name, family_name } =
-    await verfiyGoogleAccount({ idToken });
+  const { email, email_verified, picture, given_name, family_name, name } =
+    await verifyGoogleAccount({ idToken });
 
   if (!email_verified) {
     return next(new Error("Email is Not Verfied", { cause: 401 }));
@@ -244,6 +245,8 @@ export const loginWithGmail = async (req, res, next) => {
         message: "Login Successfully",
         data: { accessToken, refreshToken },
       });
+    } else {
+      return next(new Error("Email already registered with another provider", { cause: 409 }));
     }
   }
 
@@ -252,7 +255,7 @@ export const loginWithGmail = async (req, res, next) => {
     data: [
       {
         email,
-        fullname: `${given_name} ${family_name}`,
+        fullname: name || `${given_name || ""} ${family_name || ""}`.trim() || email.split("@")[0],
         photo: picture,
         provider: providers.google,
         confirm_email: true,
@@ -277,9 +280,12 @@ export const refreshToken = async(req,res,next)=>{
 
   return successResponse({  
     res,
-    statusCode: 201,
+    statusCode: 200,
     message: "New Credentials Created Successfully",
-    data: {newCredentials},
+    data: { 
+      accessToken: newCredentials.accessToken,
+      refreshToken: newCredentials.refreshToken 
+    },
   });
 };
 
@@ -294,10 +300,10 @@ export const forgetPassword = async(req,res,next)=>{
     filter:{ 
       email,
       provider: providers.system,
-      confirm_email:{$exists:true},
-      freezed_at:null
+      confirm_email: true,
+      freezed_at: null
     },
-    data:{forget_password_otp:hashOtp,otp_expired_at}
+    data: { forget_password_otp: hashOtp, otp_expired_at }
   });
   if(!user){
     return next (new Error("User Not Found",{ cause:404 }));
@@ -320,8 +326,8 @@ export const resetPassword = async(req,res,next)=>{
     filter:{
       email,
       provider: providers.system,
-      confirm_email:{$exists:true},
-      freezed_at:null,
+      confirm_email: true,
+      freezed_at: null,
       forget_password_otp: { $exists: true }
     }
   });
