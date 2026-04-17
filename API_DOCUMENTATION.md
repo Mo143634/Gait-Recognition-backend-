@@ -26,7 +26,7 @@ Content-Type: application/json
   "password": "SecurePassword123!",
   "confirm_password": "SecurePassword123!",
   "gender": "male",
-  "phone": "01012345678",
+  "phone": "+1234567890",
   "role": "USER"
 }
 ```
@@ -71,7 +71,13 @@ Content-Type: application/json
   "data": {
     "accessToken": "eyJhbGciOiJIUzI1NiIs...",
     "refreshToken": "eyJhbGciOiJIUzI1NiIs...",
-    "user": { /* user object */ }
+    "user": {
+      "_id": "507f1f77bcf86cd799439011",
+      "fullname": "John Doe",
+      "email": "john@example.com",
+      "phone": "+1234567890",
+      "role": "USER"
+    }
   }
 }
 ```

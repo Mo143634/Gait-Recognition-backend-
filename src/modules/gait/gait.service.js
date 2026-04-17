@@ -1,6 +1,7 @@
 import { GaitProfileModel } from "./gait.model.js";
 import { UserModel } from "../../db/models/user.model.js";
 import { cloudinaryConfig } from "../../utils/multer/cloudinary.js";
+import { deleteFile } from "../../utils/file/fileActions.js";
 
 const cloudinary = cloudinaryConfig();
 
@@ -54,6 +55,9 @@ export const uploadGaitVideo = async (req, res, next) => {
             { $push: { gaitProfiles: gaitProfile._id } },
             { new: true }
         );
+
+        // Remove temporary file from local storage
+        deleteFile(req.file.path);
 
         return {
             statusCode: 201,

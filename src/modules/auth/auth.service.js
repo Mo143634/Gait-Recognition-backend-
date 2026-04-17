@@ -1,6 +1,6 @@
 import { create, findOne } from "../../db/dbService.js";
 import { providers, UserModel } from "../../db/models/user.model.js";
-import { encrypt } from "../../utils/Encryption/encription.utils.js";
+import { encrypt, decrypt } from "../../utils/Encryption/encription.utils.js";
 import { compare, hash } from "../../utils/Hashing/hash.utils.js";
 import { successResponse } from "../../utils/multer/successResponse.utils.js";
 import { getNewLoginCredentials, logoutEnum, } from "../../utils/Token/token.utils.js";
@@ -49,7 +49,7 @@ export const signup = async (req, res, next) => {
       fullname: user.fullname,
       email: user.email,
       gender: user.gender,
-      phone: user.phone,
+      phone: phone,
       role: user.role,
       message: "Please check your Gmail inbox for the 6-digit verification code."
     },
@@ -137,6 +137,7 @@ export const login = async (req, res, next) => {
         _id: user._id,
         fullname: user.fullname,
         email: user.email,
+        phone: user.phone ? decrypt(user.phone) : undefined,
         role: user.role
       }
     },
