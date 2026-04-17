@@ -671,7 +671,7 @@ Authorization: Bearer <token>
 
 ### Example cURL Upload
 ```bash
-curl -X POST http://localhost:3000/api/gait/upload \
+curl -X POST http://localhost:5000/api/gait/upload \
   -H "Authorization: Bearer <token>" \
   -F "video=@path/to/video.mp4" \
   -F "description=My gait video"
@@ -714,8 +714,20 @@ Used for sending verification codes via Gmail.
 
 ### Storage Setup
 Used for gait video uploads and profile pictures.
-- `UPLOAD_PATH`: Path to the uploads directory (default: `uploads`).
-- `CLOUD_NAME`, `API_KEY`, `API_SECRET`: Cloudinary credentials for cloud storage.
+- `UPLOAD_PATH`: Path to the local uploads directory (default: `uploads`).
+- `CLOUDINARY_CLOUD_NAME`, `CLOUDINARY_API_KEY`, `CLOUDINARY_API_SECRET`: Cloudinary credentials for cloud media storage.
+
+### Security & JWT
+Required for token generation and data encryption.
+- `ACCESS_TOKEN_SIGNATURE`, `REFRESH_TOKEN_SIGNATURE`: Secret keys for signing JWTs.
+- `SALT`: Number of rounds for password hashing (e.g., `10`).
+- `ENCRYPTION_KEY`: A secret key for AES phone number encryption.
+
+### System Configuration
+- `PORT`: Server listening port (default: `5000`).
+- `MONGODB_URI`: Connection string for MongoDB.
+- `CORS_ORIGIN`: Allowed origins (comma-separated, e.g., `http://localhost:3000`).
+- `AI_API_URL`: URL of the gait analysis AI service.
 
 ---
 

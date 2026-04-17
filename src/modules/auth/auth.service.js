@@ -57,35 +57,74 @@ export const signup = async (req, res, next) => {
 };
 
 export const login = async (req, res, next) => { 
-
   const { password, email } = req.body;
 
   const user = await findOne({ model: UserModel, filter: { email }});
 
   if (!user) {
-    return next(new Error("Invalied email or password", { cause: 401 }));
+    return next(new Error("Invalid email or password", { cause: 401 }));
   }
 
+  // Check if account is frozen
+  if (user.freezed_at) {
+    return next(new Error("Account is frozen. Please contact administration.", { cause: 403 }));
+  }
+
+  // Check if provider is system
+  if (user.provider !== providers.system) {
+    return next(new Error(`Please login using ${user.provider}`, { cause: 400 }));
+  }
+
+  // Check if email is confirmed
   if (user.confirm_email !== true) {
     return next(new Error("Email is not confirmed yet", { cause: 403 }));
   }    
-  // Compore the hash password
+
+  // Check brute force protection
+  if (user.lock_until && user.lock_until > Date.now()) {
+    return next(new Error("Account is locked. Please try again later.", { cause: 403 }));
+  }
+
+  // Compare the hash password
   const isMatch = await compare({ 
     plainText: password, 
     hash: user.password 
   });
 
   if (!isMatch) {
+    // Handle failed attempts
+    const updatedUser = await dbService.findOneAndUpdate({
+      model: UserModel,
+      filter: { email },
+      data: { $inc: { field_attempts: 1 } },
+      options: { new: true }
+    });
+
+    if (updatedUser.field_attempts >= 5) {
+      await dbService.updateOne({
+        model: UserModel,
+        filter: { email },
+        data: {
+          lock_until: new Date(Date.now() + 15 * 60 * 1000), // Lock for 15 minutes
+          field_attempts: 0
+        }
+      });
+      return next(new Error("Too many invalid attempts. Account is locked for 15 minutes.", { cause: 403 }));
+    }
+
     return next(new Error("Invalid email or password", { cause: 401 }));
   }
   
+  // Successful login - Reset attempts
+  if (user.field_attempts > 0 || user.lock_until) {
+    await dbService.updateOne({
+      model: UserModel,
+      filter: { email },
+      data: { field_attempts: 0, lock_until: null }
+    });
+  }
 
   const newCredentials = await getNewLoginCredentials(user)
-
-  // emailEvent.emit("LoginSuccessfuly", {
-  //   to: user.email,
-  //   fullname: user.fullname
-  // });
 
   return successResponse({  
     res,
