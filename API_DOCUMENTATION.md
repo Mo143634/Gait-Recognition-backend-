@@ -2,7 +2,7 @@
 
 ## Base URL
 ```
-http://localhost:3000/api
+http://localhost:5000/api
 ```
 
 ## Authentication
@@ -24,8 +24,9 @@ Content-Type: application/json
   "fullname": "John Doe",
   "email": "john@example.com",
   "password": "SecurePassword123!",
+  "confirm_password": "SecurePassword123!",
   "gender": "male",
-  "phone": "+1234567890",
+  "phone": "01012345678",
   "role": "USER"
 }
 ```
@@ -66,7 +67,7 @@ Content-Type: application/json
 **Response (200):**
 ```json
 {
-  "message": "Login successful",
+  "message": "Login successfully",
   "data": {
     "accessToken": "eyJhbGciOiJIUzI1NiIs...",
     "refreshToken": "eyJhbGciOiJIUzI1NiIs...",
@@ -87,8 +88,8 @@ Content-Type: application/json
 ```
 
 **Logout Flags:**
-- `single` - Logout from current device (default)
-- `all_devices` - Logout from all devices (invalidates all current sessions)
+- `logout` - Logout from current device (default)
+- `allDevices` - Logout from all devices (invalidates all current sessions)
 
 **Response (200/201):**
 ```json
@@ -708,8 +709,8 @@ To ensure all features work correctly, the following environment variables are r
 
 ### Email Setup (OTP)
 Used for sending verification codes via Gmail.
-- `EMAIL_USER`: Your Gmail address (e.g., `user@gmail.com`).
-- `EMAIL_PASS`: Your **Gmail App Password** (Generated in Google Account settings).
+- `EMAIL`: Your Gmail address (e.g., `user@gmail.com`).
+- `APP_PASSWORD`: Your **Gmail App Password** (Generated in Google Account settings).
 
 ### Storage Setup
 Used for gait video uploads and profile pictures.
