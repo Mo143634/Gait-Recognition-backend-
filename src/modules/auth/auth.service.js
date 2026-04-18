@@ -4,37 +4,37 @@ import { encrypt, decrypt } from "../../utils/Encryption/encription.utils.js";
 import { compare, hash } from "../../utils/Hashing/hash.utils.js";
 import { successResponse } from "../../utils/multer/successResponse.utils.js";
 import { getNewLoginCredentials, logoutEnum, } from "../../utils/Token/token.utils.js";
-import { OAuth2Client } from"google-auth-library";
+import { OAuth2Client } from "google-auth-library";
 import * as dbService from "../../db/dbService.js"
 import { emailEvent } from "../../utils/Event/events.utils.js";
-import { customAlphabet } from "nanoid"; 
+import { customAlphabet } from "nanoid";
 import TokenModel from "../../db/models/token.model.js";
 
-export const signup = async (req, res, next) => { 
-  const { fullname, password, email, gender, phone , role } = req.body;
+export const signup = async (req, res, next) => {
+  const { fullname, password, email, gender, phone, role } = req.body;
 
-  if (await findOne({ model: UserModel, filter: { email } })) 
+  if (await findOne({ model: UserModel, filter: { email } }))
     return next(new Error("User already exists", { cause: 409 }));
 
-  const hashedPassword = await hash({plainText: password});
+  const hashedPassword = await hash({ plainText: password });
   const encryptionPhone = encrypt(phone);
 
   // Generate OTP
   const otp = customAlphabet("0123456789", 6)();
-  const hashOtp = await hash({plainText:otp});
-  const otp_expired_at = new Date(Date.now()+2 * 60 * 1000);
-  emailEvent.emit("confirmEmail",{to:email , otp , fullname });
+  const hashOtp = await hash({ plainText: otp });
+  const otp_expired_at = new Date(Date.now() + 2 * 60 * 1000);
+  emailEvent.emit("confirmEmail", { to: email, otp, fullname });
 
   const users = await create({
     model: UserModel,
-    data:[{
+    data: [{
       fullname,
-      password:hashedPassword, 
+      password: hashedPassword,
       email,
       gender,
-      phone:encryptionPhone,
+      phone: encryptionPhone,
       role,
-      confirm_email_otp : hashOtp,
+      confirm_email_otp: hashOtp,
       otp_expired_at
     }],
   });
@@ -56,10 +56,10 @@ export const signup = async (req, res, next) => {
   });
 };
 
-export const login = async (req, res, next) => { 
+export const login = async (req, res, next) => {
   const { password, email } = req.body;
 
-  const user = await findOne({ model: UserModel, filter: { email }});
+  const user = await findOne({ model: UserModel, filter: { email } });
 
   if (!user) {
     return next(new Error("Invalid email or password", { cause: 401 }));
@@ -78,7 +78,7 @@ export const login = async (req, res, next) => {
   // Check if email is confirmed
   if (user.confirm_email !== true) {
     return next(new Error("Email is not confirmed yet", { cause: 403 }));
-  }    
+  }
 
   // Check brute force protection
   if (user.lock_until && user.lock_until > Date.now()) {
@@ -86,9 +86,9 @@ export const login = async (req, res, next) => {
   }
 
   // Compare the hash password
-  const isMatch = await compare({ 
-    plainText: password, 
-    hash: user.password 
+  const isMatch = await compare({
+    plainText: password,
+    hash: user.password
   });
 
   if (!isMatch) {
@@ -114,7 +114,7 @@ export const login = async (req, res, next) => {
 
     return next(new Error("Invalid email or password", { cause: 401 }));
   }
-  
+
   // Successful login - Reset attempts
   if (user.field_attempts > 0 || user.lock_until) {
     await dbService.updateOne({
@@ -126,11 +126,11 @@ export const login = async (req, res, next) => {
 
   const newCredentials = await getNewLoginCredentials(user)
 
-  return successResponse({  
+  return successResponse({
     res,
     statusCode: 200,
     message: "Login successfully",
-    data: { 
+    data: {
       accessToken: newCredentials.accessToken,
       refreshToken: newCredentials.refreshToken,
       user: {
@@ -181,46 +181,46 @@ export const logout = async (req, res, next) => {
   });
 };
 
-export const confirmEmail = async (req,res,next)=>{
-  const { email , otp } = req.body;
+export const confirmEmail = async (req, res, next) => {
+  const { email, otp } = req.body;
 
   const user = await dbService.findOne({
     model: UserModel,
-    filter:{
+    filter: {
       email,
       confirm_email: false,
       confirm_email_otp: { $exists: true }
     }
-  }); 
+  });
 
-  if(!user){
-    return next(new Error("User Not Found Or Email Already Confirmed",{ cause:401 }));
+  if (!user) {
+    return next(new Error("User Not Found Or Email Already Confirmed", { cause: 401 }));
   }
 
-  if(user.lock_until && user.lock_until > Date.now()){
-    return next(new Error("Account is locked. Please try again later",{ cause:403 }));
+  if (user.lock_until && user.lock_until > Date.now()) {
+    return next(new Error("Account is locked. Please try again later", { cause: 403 }));
   }
 
-  if(!user.confirm_email_otp || user.otp_expired_at < Date.now()){
-    return next(new Error("OTP has expired. Please request a new one.",{ cause:400 }));
+  if (!user.confirm_email_otp || user.otp_expired_at < Date.now()) {
+    return next(new Error("OTP has expired. Please request a new one.", { cause: 400 }));
   }
-  if(user.field_attempts >= 5){
+  if (user.field_attempts >= 5) {
     await dbService.updateOne({
       model: UserModel,
-      filter:{ email },
-      data:{
+      filter: { email },
+      data: {
         lock_until: new Date(Date.now() + 15 * 60 * 1000), // Lock for 15 minutes
-        field_attempts:0
+        field_attempts: 0
       }
     });
-    return next(new Error("Too many invalid attempts. Account is locked for 15 minutes.",{ cause:403 }));
+    return next(new Error("Too many invalid attempts. Account is locked for 15 minutes.", { cause: 403 }));
   }
 
   await dbService.updateOne({
     model: UserModel,
-    filter:{ email },
-    data:{
-      $inc:{ field_attempts: 1 }
+    filter: { email },
+    data: {
+      $inc: { field_attempts: 1 }
     }
   });
 
@@ -229,24 +229,24 @@ export const confirmEmail = async (req,res,next)=>{
     hash: user.confirm_email_otp
   });
 
-  if(!isMatch){
-    return next(new Error("Invalid OTP",{ cause:400 }));
+  if (!isMatch) {
+    return next(new Error("Invalid OTP", { cause: 400 }));
   }
 
   await dbService.updateOne({
     model: UserModel,
-    filter:{ email },
-    data:{
+    filter: { email },
+    data: {
       confirm_email: true,
-      $unset:{ confirm_email_otp: true , otp_expired_at: 0 , field_attempts: 0 , lock_until: 0  },
-      $inc:{ __v:1 }
+      $unset: { confirm_email_otp: true, otp_expired_at: 0, field_attempts: 0, lock_until: 0 },
+      $inc: { __v: 1 }
     }
   });
 
   return successResponse({
     res,
     statusCode: 200,
-    message: "Email confirmed successfully" 
+    message: "Email confirmed successfully"
   });
 };
 
@@ -313,31 +313,31 @@ export const loginWithGmail = async (req, res, next) => {
   });
 };
 
-export const refreshToken = async(req,res,next)=>{
+export const refreshToken = async (req, res, next) => {
   const user = req.user;
 
   const newCredentials = await getNewLoginCredentials(user)
 
-  return successResponse({  
+  return successResponse({
     res,
     statusCode: 200,
     message: "New Credentials Created Successfully",
-    data: { 
+    data: {
       accessToken: newCredentials.accessToken,
-      refreshToken: newCredentials.refreshToken 
+      refreshToken: newCredentials.refreshToken
     },
   });
 };
 
-export const forgetPassword = async(req,res,next)=>{
+export const forgetPassword = async (req, res, next) => {
   const { email } = req.body;
   const otp = await customAlphabet("0123456789", 6)();
-  const hashOtp = await hash({plainText:otp})
-  const otp_expired_at = new Date(Date.now()+2 * 60 * 1000);
+  const hashOtp = await hash({ plainText: otp })
+  const otp_expired_at = new Date(Date.now() + 2 * 60 * 1000);
 
   const user = await dbService.findOneAndUpdate({
-    model:UserModel,
-    filter:{ 
+    model: UserModel,
+    filter: {
       email,
       provider: providers.system,
       confirm_email: true,
@@ -345,25 +345,25 @@ export const forgetPassword = async(req,res,next)=>{
     },
     data: { forget_password_otp: hashOtp, otp_expired_at }
   });
-  if(!user){
-    return next (new Error("User Not Found",{ cause:404 }));
+  if (!user) {
+    return next(new Error("User Not Found", { cause: 404 }));
   }
-  emailEvent.emit("forgetPassword",{to:email , otp , fullname:user.fullname });
+  emailEvent.emit("forgetPassword", { to: email, otp, fullname: user.fullname });
 
   return successResponse({
     res,
-    statusCode:200,
-    message:"OTP sent to your email successfully"
+    statusCode: 200,
+    message: "OTP sent to your email successfully"
   })
 
 };
 
-export const resetPassword = async(req,res,next)=>{
-  const { email , otp , password}  = req.body;
+export const resetPassword = async (req, res, next) => {
+  const { email, otp, password } = req.body;
 
   const user = await dbService.findOne({
     model: UserModel,
-    filter:{
+    filter: {
       email,
       provider: providers.system,
       confirm_email: true,
@@ -371,68 +371,68 @@ export const resetPassword = async(req,res,next)=>{
       forget_password_otp: { $exists: true }
     }
   });
-  if(!user){
-    return next(new Error("User Not Found",{ cause:404 }));
+  if (!user) {
+    return next(new Error("User Not Found", { cause: 404 }));
   }
 
-  if(!await compare({ plainText: otp , hash: user.forget_password_otp })){
-    return next (new Error("Invalid OTP",{ cause:400 }));
+  if (!await compare({ plainText: otp, hash: user.forget_password_otp })) {
+    return next(new Error("Invalid OTP", { cause: 400 }));
   }
 
-  if(user.otp_expired_at < Date.now()){
-    return next (new Error("OTP has expired. Please request a new one.",{ cause:400 }));
+  if (user.otp_expired_at < Date.now()) {
+    return next(new Error("OTP has expired. Please request a new one.", { cause: 400 }));
   }
 
-  const hashedPassword = await hash({plainText: password});
+  const hashedPassword = await hash({ plainText: password });
 
   await dbService.updateOne({
     model: UserModel,
-    filter:{ email },
-    data:{
-      password:hashedPassword,
-      $unset:{ forget_password_otp: "" , otp_expired_at: "" },
-      $inc:{ __v:1 }
+    filter: { email },
+    data: {
+      password: hashedPassword,
+      $unset: { forget_password_otp: "", otp_expired_at: "" },
+      $inc: { __v: 1 }
     }
   });
 
   return successResponse({
     res,
-    statusCode:200,
-    message:"Password Reset Successfully"
+    statusCode: 200,
+    message: "Password Reset Successfully"
   });
 };
 
-export const resendEmailOtp = async(req,res,next)=>{
+export const resendEmailOtp = async (req, res, next) => {
   const { email } = req.body;
-  
+
   const user = await dbService.findOne({
     model: UserModel,
-    filter:{
+    filter: {
       email,
       confirm_email: false,
       provider: providers.system
     }
   });
-  
-  if(!user){
-    return next(new Error("User not found or email already confirmed",{ cause:404 }));
+
+  if (!user) {
+    return next(new Error("User not found or email already confirmed", { cause: 404 }));
   }
 
   // Check if account is locked
-  if(user.lock_until && user.lock_until > Date.now()){
-    return next(new Error("Account is locked. Please try again later",{ cause:403 }));
+  if (user.lock_until && user.lock_until > Date.now()) {
+    return next(new Error("Account is locked. Please try again later", { cause: 403 }));
   }
 
   // Generate new OTP
   const otp = customAlphabet("0123456789", 6)();
-  const hashOtp = await hash({plainText:otp});
+  const hashOtp = await hash({ plainText: otp });
   const otp_expired_at = new Date(Date.now() + 2 * 60 * 1000);
 
   // Update user with new OTP
   await dbService.updateOne({
     model: UserModel,
-    filter:{ email },
-    data:{
+    filter: { email },
+    data: {
       confirm_email_otp: hashOtp,
       otp_expired_at,
       field_attempts: 0,
@@ -441,47 +441,47 @@ export const resendEmailOtp = async(req,res,next)=>{
   });
 
   // Send OTP via email
-  emailEvent.emit("confirmEmail",{ to:email , otp , fullname:user.fullname });
+  emailEvent.emit("confirmEmail", { to: email, otp, fullname: user.fullname });
 
   return successResponse({
     res,
-    statusCode:200,
-    message:"OTP resent to your email successfully"
+    statusCode: 200,
+    message: "OTP resent to your email successfully"
   });
 };
 
-export const resendForgotPasswordOtp = async(req,res,next)=>{
+export const resendForgotPasswordOtp = async (req, res, next) => {
   const { email } = req.body;
-  
+
   const user = await dbService.findOne({
     model: UserModel,
-    filter:{
+    filter: {
       email,
       provider: providers.system,
-      confirm_email:{$exists:true},
-      freezed_at:null
+      confirm_email: { $exists: true },
+      freezed_at: null
     }
   });
-  
-  if(!user){
-    return next(new Error("User not found",{ cause:404 }));
+
+  if (!user) {
+    return next(new Error("User not found", { cause: 404 }));
   }
 
   // Check if account is locked
-  if(user.lock_until && user.lock_until > Date.now()){
-    return next(new Error("Account is locked. Please try again later",{ cause:403 }));
+  if (user.lock_until && user.lock_until > Date.now()) {
+    return next(new Error("Account is locked. Please try again later", { cause: 403 }));
   }
 
   // Generate new OTP
   const otp = customAlphabet("0123456789", 6)();
-  const hashOtp = await hash({plainText:otp});
+  const hashOtp = await hash({ plainText: otp });
   const otp_expired_at = new Date(Date.now() + 2 * 60 * 1000);
 
   // Update user with new OTP
   await dbService.updateOne({
     model: UserModel,
-    filter:{ email },
-    data:{
+    filter: { email },
+    data: {
       forget_password_otp: hashOtp,
       otp_expired_at,
       field_attempts: 0,
@@ -490,11 +490,11 @@ export const resendForgotPasswordOtp = async(req,res,next)=>{
   });
 
   // Send OTP via email
-  emailEvent.emit("forgetPassword",{ to:email , otp , fullname:user.fullname });
+  emailEvent.emit("forgetPassword", { to: email, otp, fullname: user.fullname });
 
   return successResponse({
     res,
-    statusCode:200,
-    message:"OTP resent to your email successfully"
+    statusCode: 200,
+    message: "OTP resent to your email successfully"
   });
 };

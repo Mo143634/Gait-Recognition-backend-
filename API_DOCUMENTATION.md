@@ -11,7 +11,285 @@ All endpoints except auth routes require a valid JWT token in the `Authorization
 Authorization: Bearer <access_token>
 ```
 
+Authorization: Bearer <access_token>
+```
+
 ---
+
+## 📊 Dashboard Endpoints
+
+### 1. Stats Cards
+Provides key metrics for the dashboard cards.
+
+*   **Total Subjects**: `GET /dashboard/stats/subjects`
+*   **Processed Videos**: `GET /dashboard/stats/videos`
+*   **Recognition Accuracy**: `GET /dashboard/stats/accuracy`
+*   **Active Sessions**: `GET /dashboard/stats/sessions`
+
+**Response Example (200):**
+```json
+{
+  "success": true,
+  "data": {
+    "totalSubjects": 124,
+    "processedVideos": 487,
+    "accuracy": 95.2,
+    "activeSessions": 8
+  },
+  "error": null
+}
+```
+
+### 2. Recognition Accuracy Chart
+Provides time-series data for the accuracy chart.
+
+**URL**: `GET /dashboard/accuracy-chart`
+
+**Response Example (200):**
+```json
+{
+  "success": true,
+  "data": [
+    { "time": "00:00", "accuracy": 93 },
+    { "time": "04:00", "accuracy": 94 },
+    { "time": "08:00", "accuracy": 96 },
+    { "time": "12:00", "accuracy": 95 },
+    { "time": "16:00", "accuracy": 96 },
+    { "time": "20:00", "accuracy": 95 }
+  ],
+  "error": null
+}
+```
+
+### 3. System Status
+Check the real-time health of services.
+
+**URL**: `GET /dashboard/system-status`
+
+**Response Example (200):**
+```json
+{
+  "success": true,
+  "data": {
+    "modelInference": "online",
+    "geiGenerator": "online",
+    "featureExtractor": "online",
+    "database": "online",
+    "lastSync": "2 minutes ago"
+  },
+  "error": null
+}
+```
+
+### 4. Recent Uploads Table
+Retrieves the most recent video uploads and their analysis status.
+
+**URL**: `GET /dashboard/recent-uploads`
+
+**Response Example (200):**
+```json
+{
+  "success": true,
+  "data": [
+    {
+      "id": "VID-001",
+      "filename": "cam_04_subject_082.avi",
+      "subject": "Subject #082",
+      "status": "identified",
+      "score": 0.94,
+      "time": "2 min ago"
+    }
+  ],
+  "error": null
+}
+```
+
+**Status Values:**
+*   `identified`: Successfully processed and recognized.
+*   `processing`: Currently being analyzed.
+*   `failed`: Analysis failed or error occurred.
+
+---
+
+## 📈 Reports & Analytics Endpoints
+
+### 1. Get Analytics Summary
+Returns high-level performance metrics of the gait recognition system.
+
+**URL**: `GET /api/reports/summary`
+**Auth**: Required (Any role)
+
+**Response Example (200):**
+```json
+{
+  "success": true,
+  "data": {
+    "rank1Accuracy": 95.2,
+    "rank5Accuracy": 99.1,
+    "datasetSize": 1240,
+    "modelParameters": "24.3M"
+  },
+  "error": null
+}
+```
+
+### 2. Accuracy by Condition
+Returns accuracy percentages for different gait conditions (Normal, Bag, Coat).
+
+**URL**: `GET /api/reports/accuracy-by-condition`
+**Auth**: Required
+
+**Response Example (200):**
+```json
+{
+  "success": true,
+  "data": [
+    { "condition": "normal", "accuracy": 95 },
+    { "condition": "bag", "accuracy": 91 },
+    { "condition": "coat", "accuracy": 87 }
+  ],
+  "error": null
+}
+```
+
+### 3. Dataset Distribution
+Returns the percentage breakdown of sequences per condition in the dataset.
+
+**URL**: `GET /api/reports/dataset-distribution`
+**Auth**: Required
+
+**Response Example (200):**
+```json
+{
+  "success": true,
+  "data": [
+    { "condition": "normal", "percentage": 40 },
+    { "condition": "bag", "percentage": 35 },
+    { "condition": "coat", "percentage": 25 }
+  ],
+  "error": null
+}
+```
+
+### 4. Export Reports
+Combines all analytics data into a single exportable JSON object.
+
+**URL**: `GET /api/reports/export`
+**Auth**: Required
+
+**Response Example (200):**
+```json
+{
+  "success": true,
+  "data": {
+    "summary": { ... },
+    "accuracyByCondition": [ ... ],
+    "datasetDistribution": [ ... ]
+  },
+  "error": null
+}
+```
+
+---
+
+## ⚙️ Settings Endpoints
+
+### 1. Get User Profile Settings
+Retrieves personal and institutional information for the logged-in user.
+
+**URL**: `GET /api/settings/profile`
+**Auth**: Required
+
+**Response Example (200):**
+```json
+{
+  "success": true,
+  "data": {
+    "fullName": "John Doe",
+    "email": "john@example.com",
+    "role": "USER",
+    "institution": "University of Research"
+  },
+  "error": null
+}
+```
+
+### 2. Update User Profile Settings
+Updates non-sensitive profile information. Note: Email and Role cannot be changed here.
+
+**URL**: `PATCH /api/settings/profile`
+**Auth**: Required
+**Body**:
+```json
+{
+  "fullName": "John Doe Updated",
+  "institution": "Advanced Robotics Lab"
+}
+```
+
+**Response Example (200):**
+```json
+{
+  "success": true,
+  "data": {
+    "fullName": "John Doe Updated",
+    "email": "john@example.com",
+    "role": "USER",
+    "institution": "Advanced Robotics Lab"
+  },
+  "error": null
+}
+```
+
+### 3. Get Model Configurations
+Retrieves current AI model inference settings.
+
+**URL**: `GET /api/settings/model`
+**Auth**: Required
+
+**Response Example (200):**
+```json
+{
+  "success": true,
+  "data": {
+    "similarityThreshold": 0.75,
+    "frameSamplingRate": 30
+  },
+  "error": null
+}
+```
+
+### 4. Update Model Configurations
+Updates core inference parameters. **Restricted to Admin only.**
+
+**URL**: `PATCH /api/settings/model`
+**Auth**: Required (Role: ADMIN)
+**Body**:
+```json
+{
+  "similarityThreshold": 0.85,
+  "frameSamplingRate": 60
+}
+```
+
+**Constraints:**
+*   `similarityThreshold`: Number between 0 and 1.
+*   `frameSamplingRate`: Positive integer.
+
+**Response Example (200):**
+```json
+{
+  "success": true,
+  "data": {
+    "similarityThreshold": 0.85,
+    "frameSamplingRate": 60
+  },
+  "error": null
+}
+```
+
+---
+
 
 ## 📌 Authentication Endpoints
 
@@ -40,7 +318,7 @@ Content-Type: application/json
 **Response (201):**
 ```json
 {
-  "message": "Signup successful. Verification OTP sent to Gmail.",
+  "success": true,
   "data": {
     "_id": "507f1f77bcf86cd799439011",
     "fullname": "John Doe",
@@ -49,7 +327,8 @@ Content-Type: application/json
     "phone": "+1234567890",
     "role": "USER",
     "message": "Please check your Gmail inbox for the 6-digit verification code."
-  }
+  },
+  "error": null
 }
 ```
 
@@ -67,7 +346,7 @@ Content-Type: application/json
 **Response (200):**
 ```json
 {
-  "message": "Login successfully",
+  "success": true,
   "data": {
     "accessToken": "eyJhbGciOiJIUzI1NiIs...",
     "refreshToken": "eyJhbGciOiJIUzI1NiIs...",
@@ -78,7 +357,8 @@ Content-Type: application/json
       "phone": "+1234567890",
       "role": "USER"
     }
-  }
+  },
+  "error": null
 }
 ```
 
@@ -117,11 +397,31 @@ Content-Type: application/json
 **Response (200/201):**
 ```json
 {
-  "message": "Login Successfully",
+  "success": true,
+  "data": null,
+  "error": null
+}
+```
+
+### 4. Social Login (Gmail)
+```http
+POST /auth/social-login
+Content-Type: application/json
+
+{
+  "idToken": "google-id-token-here"
+}
+```
+
+**Response (200/201):**
+```json
+{
+  "success": true,
   "data": {
     "accessToken": "eyJhbGciOiJIUzI1NiIs...",
     "refreshToken": "eyJhbGciOiJIUzI1NiIs..."
-  }
+  },
+  "error": null
 }
 ```
 
@@ -129,7 +429,8 @@ Content-Type: application/json
 - Occurs if the email is already registered using a different provider (e.g., SYSTEM).
 ```json
 {
-  "message": "Something went wrong",
+  "success": false,
+  "data": null,
   "error": "Email already registered with another provider"
 }
 ```
@@ -143,11 +444,12 @@ Authorization: Bearer <refresh_token>
 **Response (200):**
 ```json
 {
-  "message": "New Credentials Created Successfully",
+  "success": true,
   "data": {
     "accessToken": "eyJhbGciOiJIUzI1NiIs...",
     "refreshToken": "eyJhbGciOiJIUzI1NiIs..."
-  }
+  },
+  "error": null
 }
 ```
 
@@ -253,7 +555,7 @@ Authorization: Bearer <access_token>
 **Response (200):**
 ```json
 {
-  "message": "Profile retrieved successfully",
+  "success": true,
   "data": {
     "_id": "507f1f77bcf86cd799439011",
     "fullname": "John Doe",
@@ -262,7 +564,8 @@ Authorization: Bearer <access_token>
     "phone": "+1234567890",
     "role": "USER",
     "profile_Image": "https://res.cloudinary.com/..."
-  }
+  },
+  "error": null
 }
 ```
 
@@ -281,7 +584,7 @@ image: <new_profile_image_file> (Optional)
 **Response (200):**
 ```json
 {
-  "message": "Profile updated successfully",
+  "success": true,
   "data": {
     "_id": "507f1f77bcf86cd799439011",
     "fullname": "John Updated",
@@ -290,7 +593,8 @@ image: <new_profile_image_file> (Optional)
     "phone": "+1987654321",
     "role": "USER",
     "profile_Image": "https://res.cloudinary.com/..."
-  }
+  },
+  "error": null
 }
 ```
 
@@ -311,7 +615,7 @@ description: "Optional description of the gait video"
 **Response (201):**
 ```json
 {
-  "message": "Gait video uploaded successfully",
+  "success": true,
   "data": {
     "_id": "507f1f77bcf86cd799439012",
     "user_id": "507f1f77bcf86cd799439011",
@@ -326,7 +630,8 @@ description: "Optional description of the gait video"
     "metadata": {
       "duration": 30
     }
-  }
+  },
+  "error": null
 }
 ```
 
@@ -591,7 +896,7 @@ Authorization: Bearer <token>
 **Response (200):**
 ```json
 {
-  "message": "Analysis statistics retrieved successfully",
+  "success": true,
   "data": {
     "status_breakdown": [
       {
@@ -609,7 +914,8 @@ Authorization: Bearer <token>
       "total_time": 1500000,
       "avg_time": 300000
     }
-  }
+  },
+  "error": null
 }
 ```
 
@@ -620,7 +926,8 @@ Authorization: Bearer <token>
 ### 400 Bad Request
 ```json
 {
-  "message": "Something went wrong",
+  "success": false,
+  "data": null,
   "error": "Invalid gait profile ID format"
 }
 ```
@@ -628,7 +935,8 @@ Authorization: Bearer <token>
 ### 401 Unauthorized
 ```json
 {
-  "message": "Something went wrong",
+  "success": false,
+  "data": null,
   "error": "Invalid Token"
 }
 ```
@@ -636,7 +944,8 @@ Authorization: Bearer <token>
 ### 403 Forbidden
 ```json
 {
-  "message": "Something went wrong",
+  "success": false,
+  "data": null,
   "error": "You Don't Have Access To This Route"
 }
 ```
@@ -644,7 +953,8 @@ Authorization: Bearer <token>
 ### 404 Not Found
 ```json
 {
-  "message": "Something went wrong",
+  "success": false,
+  "data": null,
   "error": "Gait profile not found"
 }
 ```
@@ -652,15 +962,17 @@ Authorization: Bearer <token>
 ### 429 Too Many Requests
 ```json
 {
-  "status": 429,
-  "message": "Too many requests from this IP, please try again"
+  "success": false,
+  "data": null,
+  "error": "Too many requests from this IP, please try again"
 }
 ```
 
 ### 500 Internal Server Error
 ```json
 {
-  "message": "Something went wrong",
+  "success": false,
+  "data": null,
   "error": "Database connection failed"
 }
 ```

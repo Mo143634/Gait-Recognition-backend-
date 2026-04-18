@@ -46,6 +46,11 @@ export const userSchema =new Schema({
     phone:{
         type: String
     },
+    institution: {
+        type: String,
+        trim: true,
+        default: ""
+    },
     
     confirm_email_otp: String,
 

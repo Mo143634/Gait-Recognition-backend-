@@ -23,8 +23,9 @@ router.post(
         const result = await analysisService.runAnalysis(req, res, next);
         if (result && !res.headersSent) {
             res.status(result.statusCode).json({
-                message: result.message,
-                data: result.data
+                success: true,
+                data: result.data,
+                error: null
             });
         }
     }
@@ -38,8 +39,9 @@ router.get(
         const result = await analysisService.getAnalysisResult(req, res, next);
         if (result && !res.headersSent) {
             res.status(result.statusCode).json({
-                message: result.message,
-                data: result.data
+                success: true,
+                data: result.data,
+                error: null
             });
         }
     }
@@ -53,8 +55,9 @@ router.get(
         const result = await analysisService.listAnalysisHistory(req, res, next);
         if (result && !res.headersSent) {
             res.status(result.statusCode).json({
-                message: result.message,
-                data: result.data
+                success: true,
+                data: result.data,
+                error: null
             });
         }
     }
@@ -68,8 +71,9 @@ router.get(
         const result = await analysisService.getProfileAnalysisHistory(req, res, next);
         if (result && !res.headersSent) {
             res.status(result.statusCode).json({
-                message: result.message,
-                data: result.data
+                success: true,
+                data: result.data,
+                error: null
             });
         }
     }
@@ -82,8 +86,9 @@ router.get(
         const result = await analysisService.getAnalysisStatistics(req, res, next);
         if (result && !res.headersSent) {
             res.status(result.statusCode).json({
-                message: result.message,
-                data: result.data
+                success: true,
+                data: result.data,
+                error: null
             });
         }
     }

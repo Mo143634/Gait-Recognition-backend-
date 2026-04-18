@@ -25,8 +25,9 @@ router.post(
         const result = await gaitService.uploadGaitVideo(req, res, next);
         if (result && !res.headersSent) {
             res.status(result.statusCode).json({
-                message: result.message,
-                data: result.data
+                success: true,
+                data: result.data,
+                error: null
             });
         }
     }
@@ -40,8 +41,9 @@ router.get(
         const result = await gaitService.getGaitProfile(req, res, next);
         if (result && !res.headersSent) {
             res.status(result.statusCode).json({
-                message: result.message,
-                data: result.data
+                success: true,
+                data: result.data,
+                error: null
             });
         }
     }
@@ -55,8 +57,9 @@ router.get(
         const result = await gaitService.listGaitProfiles(req, res, next);
         if (result && !res.headersSent) {
             res.status(result.statusCode).json({
-                message: result.message,
-                data: result.data
+                success: true,
+                data: result.data,
+                error: null
             });
         }
     }
@@ -70,8 +73,9 @@ router.patch(
         const result = await gaitService.updateGaitProfile(req, res, next);
         if (result && !res.headersSent) {
             res.status(result.statusCode).json({
-                message: result.message,
-                data: result.data
+                success: true,
+                data: result.data,
+                error: null
             });
         }
     }
@@ -85,8 +89,9 @@ router.delete(
         const result = await gaitService.deleteGaitProfile(req, res, next);
         if (result && !res.headersSent) {
             res.status(result.statusCode).json({
-                message: result.message,
-                data: result.data
+                success: true,
+                data: result.data,
+                error: null
             });
         }
     }

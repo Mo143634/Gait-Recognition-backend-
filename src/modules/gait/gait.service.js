@@ -2,6 +2,7 @@ import { GaitProfileModel } from "./gait.model.js";
 import { UserModel } from "../../db/models/user.model.js";
 import { cloudinaryConfig } from "../../utils/multer/cloudinary.js";
 import { deleteFile } from "../../utils/file/fileActions.js";
+import * as analysisService from "../analysis/analysis.service.js";
 
 const cloudinary = cloudinaryConfig();
 
@@ -58,6 +59,15 @@ export const uploadGaitVideo = async (req, res, next) => {
 
         // Remove temporary file from local storage
         deleteFile(req.file.path);
+
+        // Trigger gait processing pipeline in background
+        // We don't await this so we can return the upload status immediately
+        analysisService.runAnalysis({
+            body: { gait_profile_id: gaitProfile._id },
+            user: req.user
+        }, res, (err) => {
+            if (err) console.error("Background analysis trigger failed:", err);
+        }).catch(err => console.error("Background analysis promise failed:", err));
 
         return {
             statusCode: 201,

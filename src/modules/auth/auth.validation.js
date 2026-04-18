@@ -15,56 +15,56 @@ export const signUpValidation = {
 };
 
 export const loginValidation = {
-    body:joi.object({
+    body: joi.object({
         email: generalFields.email.required(),
         password: generalFields.password.required(),
     }).required(),
 };
 
 export const socialLoginValidation = {
-    body:joi.object({
+    body: joi.object({
         idToken: joi.string().required()
     }).required(),
 };
 
 export const confirmEmailValidation = {
-    body:joi.object({
+    body: joi.object({
         email: generalFields.email.required(),
-        otp:generalFields.otp.required()
+        otp: generalFields.otp.required()
     }).required(),
 };
 
 export const forgetPasswordValidation = {
-    body:joi.object({
+    body: joi.object({
         email: generalFields.email.required(),
 
     }).required(),
 };
 
 export const resetPasswordValidation = {
-    body:joi.object({
+    body: joi.object({
         email: generalFields.email.required(),
-        otp:generalFields.otp.required(),
+        otp: generalFields.otp.required(),
         password: generalFields.password.required(),
-        confirm_password:generalFields.confirm_password
+        confirm_password: generalFields.confirm_password
     })
 };
 
 export const logoutValidation = {
-    body:joi.object({
+    body: joi.object({
         flag: joi.string().valid(...Object.values(logoutEnum)).default(logoutEnum.stayloggedIn)
     })
-    .required(),
+        .required(),
 };
 
 export const resendEmailOtpValidation = {
-    body:joi.object({
+    body: joi.object({
         email: generalFields.email.required()
     }).required(),
 };
 
 export const resendForgotPasswordOtpValidation = {
-    body:joi.object({
+    body: joi.object({
         email: generalFields.email.required()
     }).required(),
 };

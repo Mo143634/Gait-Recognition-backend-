@@ -30,6 +30,11 @@ export const gaitProfileSchema = new Schema({
         type: String,
         trim: true
     },
+    condition: {
+        type: String,
+        enum: ["normal", "bag", "coat"],
+        default: "normal"
+    },
     status: {
         type: String,
         enum: ["pending", "processing", "completed", "failed"],

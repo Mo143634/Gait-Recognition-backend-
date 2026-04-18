@@ -3,14 +3,14 @@ import path from 'node:path';
 import fs from 'node:fs';
 import { cloudinaryConfig } from './cloudinary.js';
 
-export const cloudFileUpload = ({validation = []})=>{
-    
+export const cloudFileUpload = ({ validation = [] }) => {
+
     const storage = multer.diskStorage({})
-    const fileFilter = (req , file , cb)=>{
-        if(validation.includes(file.mimetype)){
-            cb(null,true);
-        }else{
-            return cb(new Error("Invalid File Type"),false)
+    const fileFilter = (req, file, cb) => {
+        if (validation.includes(file.mimetype)) {
+            cb(null, true);
+        } else {
+            return cb(new Error("Invalid File Type"), false)
         }
     }
     return multer({
@@ -19,16 +19,16 @@ export const cloudFileUpload = ({validation = []})=>{
     })
 }
 
-export const cloudinaryUpload = ({customPath = "general", validation = []}={}) => {
+export const cloudinaryUpload = ({ customPath = "general", validation = [] } = {}) => {
     let basePath = `uploads/${customPath}`;
 
     const storage = multer.diskStorage({
         destination: (req, file, cb) => {
-            if(req.user?._id) basePath += `/${req.user._id}`;
-            
+            if (req.user?._id) basePath += `/${req.user._id}`;
+
             const fullPath = path.resolve(`./Src/${basePath}`);
-            
-            if(!fs.existsSync(fullPath)) fs.mkdirSync(fullPath, {recursive: true});
+
+            if (!fs.existsSync(fullPath)) fs.mkdirSync(fullPath, { recursive: true });
             cb(null, path.resolve(fullPath));
         },
         filename: (req, file, cb) => {
@@ -40,7 +40,7 @@ export const cloudinaryUpload = ({customPath = "general", validation = []}={}) =
 
     const fileFilter = (req, file, cb) => {
         const videoMimeTypes = ["video/mp4", "video/mpeg", "video/avi", "video/quicktime"];
-        if(videoMimeTypes.includes(file.mimetype)) {
+        if (videoMimeTypes.includes(file.mimetype)) {
             cb(null, true);
         } else {
             return cb(new Error("Invalid Video Type"), false);
@@ -64,7 +64,7 @@ export const uploadToCloudinary = async ({
     resourceType = "auto"
 }) => {
     if (!filePath) {
-        return next (new Error("filePath is required for Cloudinary upload"));
+        return next(new Error("filePath is required for Cloudinary upload"));
     }
 
     return await cloudinaryConfig().uploader.upload(filePath, {
@@ -74,14 +74,14 @@ export const uploadToCloudinary = async ({
     });
 }
 
-export const destroyToCloudinary = async({
+export const destroyToCloudinary = async ({
     filePath,
     next,
     options = {},
     resourceType = "image"
-}) =>{
+}) => {
     if (!filePath) {
-        return next (new Error("filePath is required for Cloudinary upload"));
+        return next(new Error("filePath is required for Cloudinary upload"));
     }
 
     return await cloudinaryConfig().uploader.destroy(filePath, {

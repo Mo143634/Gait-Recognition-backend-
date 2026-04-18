@@ -37,8 +37,8 @@ export const generalFields = {
         .required()
         .messages({
             "string.empty": "Password is required",
-            "string.pattern.base": 
-            "Password must be at least 8 characters and contain: uppercase, lowercase, number, and special character (@$!%*?&#)",
+            "string.pattern.base":
+                "Password must be at least 8 characters and contain: uppercase, lowercase, number, and special character (@$!%*?&#)",
             "any.required": "Password is required"
         }),
 
@@ -78,7 +78,7 @@ export const generalFields = {
             "any.required": "Phone number is required"
         }),
 
-    id: joi.string().custom((value,helper)=>{
+    id: joi.string().custom((value, helper) => {
         return Types.ObjectId.isValid(value) || helper.message("Invalid ID format");
     }),
     age: joi
@@ -92,7 +92,7 @@ export const generalFields = {
             "number.min": "You must be at least 13 years old",
             "number.max": "Please enter a valid age",
             "any.required": "Age is required"
-    }),
+        }),
     otp: joi
         .string()
         .length(6)
@@ -103,8 +103,8 @@ export const generalFields = {
             "string.length": "OTP must be exactly 6 digits",
             "string.pattern.base": "OTP must contain only numbers",
             "any.required": "OTP is required"
-    }),
-    file:{
+        }),
+    file: {
         fieldname: joi.string(),
         originalname: joi.string(),
         encoding: joi.string(),
@@ -125,11 +125,11 @@ export const validation = (Schema) => {
             const validationResults = Schema[key].validate(req[key], {
                 abortEarly: false,
             });
-            if (validationResults.error) 
-                validationError.push({key,details:validationResults.error.details});
+            if (validationResults.error)
+                validationError.push({ key, details: validationResults.error.details });
         }
-        if(validationError.length)
-            return res.status(400).json({error: "Validation Error",details: validationError})
+        if (validationError.length)
+            return res.status(400).json({ error: "Validation Error", details: validationError })
 
         return next();
     };
