@@ -5,7 +5,8 @@ import * as reportsService from "./reports.service.js";
  */
 export const getSummary = async (req, res, next) => {
     try {
-        const data = await reportsService.getSummary();
+        const { from, to } = req.query;
+        const data = await reportsService.getSummary({ from, to });
         return res.status(200).json({
             success: true,
             data,
@@ -21,7 +22,8 @@ export const getSummary = async (req, res, next) => {
  */
 export const getAccuracyByCondition = async (req, res, next) => {
     try {
-        const data = await reportsService.getAccuracyByCondition();
+        const { from, to } = req.query;
+        const data = await reportsService.getAccuracyByCondition({ from, to });
         return res.status(200).json({
             success: true,
             data,
@@ -37,7 +39,8 @@ export const getAccuracyByCondition = async (req, res, next) => {
  */
 export const getDatasetDistribution = async (req, res, next) => {
     try {
-        const data = await reportsService.getDatasetDistribution();
+        const { from, to } = req.query;
+        const data = await reportsService.getDatasetDistribution({ from, to });
         return res.status(200).json({
             success: true,
             data,
@@ -53,7 +56,8 @@ export const getDatasetDistribution = async (req, res, next) => {
  */
 export const exportReports = async (req, res, next) => {
     try {
-        const data = await reportsService.exportReports();
+        const { from, to } = req.query;
+        const data = await reportsService.exportReports({ from, to });
         return res.status(200).json({
             success: true,
             data,

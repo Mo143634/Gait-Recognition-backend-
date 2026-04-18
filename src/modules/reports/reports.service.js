@@ -4,9 +4,14 @@ import { GaitAnalysisModel } from "../analysis/analysis.model.js";
 /**
  * Get summary analytics
  */
-export const getSummary = async () => {
-    // Dataset size
-    const datasetSize = await GaitProfileModel.countDocuments();
+export const getSummary = async ({ from, to } = {}) => {
+    const match = {};
+    if (from || to) {
+        match.createdAt = {};
+        if (from) match.createdAt.$gte = new Date(from);
+        if (to) match.createdAt.$lte = new Date(to);
+    }
+    const datasetSize = await GaitProfileModel.countDocuments(match);
     
     // Model parameters (static for now as requested)
     const modelParameters = "24.3M";
@@ -14,9 +19,15 @@ export const getSummary = async () => {
     // Accuracies
     // For Rank-1 and Rank-5, we'll return structured data
     // In a real system, these would be calculated based on comparison hits
-    // For now we'll calculate a baseline from confidence scores if they exist
+    const analysisMatch = { status: "completed" };
+    if (from || to) {
+        analysisMatch.createdAt = {};
+        if (from) analysisMatch.createdAt.$gte = new Date(from);
+        if (to) analysisMatch.createdAt.$lte = new Date(to);
+    }
+
     const stats = await GaitAnalysisModel.aggregate([
-        { $match: { status: "completed" } },
+        { $match: analysisMatch },
         {
             $group: {
                 _id: null,
@@ -38,10 +49,16 @@ export const getSummary = async () => {
 /**
  * Get accuracy by condition (Normal, Bag, Coat)
  */
-export const getAccuracyByCondition = async () => {
+export const getAccuracyByCondition = async ({ from, to } = {}) => {
+    const match = { status: "completed" };
+    if (from || to) {
+        match.createdAt = {};
+        if (from) match.createdAt.$gte = new Date(from);
+        if (to) match.createdAt.$lte = new Date(to);
+    }
     // Join GaitAnalysis with GaitProfile to get condition
     const results = await GaitAnalysisModel.aggregate([
-        { $match: { status: "completed" } },
+        { $match: match },
         {
             $lookup: {
                 from: "gaitprofiles",
@@ -79,8 +96,14 @@ export const getAccuracyByCondition = async () => {
 /**
  * Get dataset distribution by condition
  */
-export const getDatasetDistribution = async () => {
-    const total = await GaitProfileModel.countDocuments();
+export const getDatasetDistribution = async ({ from, to } = {}) => {
+    const match = {};
+    if (from || to) {
+        match.createdAt = {};
+        if (from) match.createdAt.$gte = new Date(from);
+        if (to) match.createdAt.$lte = new Date(to);
+    }
+    const total = await GaitProfileModel.countDocuments(match);
     if (total === 0) {
         return [
             { condition: "normal", percentage: 40 },
@@ -90,6 +113,7 @@ export const getDatasetDistribution = async () => {
     }
 
     const groups = await GaitProfileModel.aggregate([
+        { $match: match },
         {
             $group: {
                 _id: "$condition",
@@ -107,11 +131,11 @@ export const getDatasetDistribution = async () => {
 /**
  * Export all report data
  */
-export const exportReports = async () => {
+export const exportReports = async ({ from, to } = {}) => {
     const [summary, accuracyByCondition, datasetDistribution] = await Promise.all([
-        getSummary(),
-        getAccuracyByCondition(),
-        getDatasetDistribution()
+        getSummary({ from, to }),
+        getAccuracyByCondition({ from, to }),
+        getDatasetDistribution({ from, to })
     ]);
 
     return {

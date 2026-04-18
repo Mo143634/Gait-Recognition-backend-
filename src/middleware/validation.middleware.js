@@ -3,7 +3,7 @@ import { Types } from "mongoose";
 
 
 export const generalFields = {
-    fullname: joi
+    fullName: joi
         .string()
         .trim()
         .min(3)
@@ -42,7 +42,7 @@ export const generalFields = {
             "any.required": "Password is required"
         }),
 
-    confirm_password: joi
+    confirmPassword: joi
         .string()
         .valid(joi.ref("password"))
         .required()

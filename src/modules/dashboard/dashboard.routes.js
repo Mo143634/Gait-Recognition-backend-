@@ -7,13 +7,7 @@ const router = Router();
 // Secure all dashboard routes
 router.use(authentication());
 
-// Stats Cards
-router.get("/stats/subjects", dashboardController.getSubjects);
-router.get("/stats/videos", dashboardController.getVideos);
-router.get("/stats/accuracy", dashboardController.getAccuracy);
-router.get("/stats/sessions", dashboardController.getSessions);
-
-// Combined Stats (for efficiency if needed)
+// Combined Stats
 router.get("/stats", dashboardController.getAllStats);
 
 // Recognition Accuracy Chart

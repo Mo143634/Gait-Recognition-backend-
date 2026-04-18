@@ -15,7 +15,7 @@ export const roles = {
     securityOfficer:"SECURITY_OFFICER"
 };
 export const userSchema =new Schema({
-    fullname: {
+    fullName: {
         type: String,
         required: true,
         trim: true,
@@ -52,27 +52,27 @@ export const userSchema =new Schema({
         default: ""
     },
     
-    confirm_email_otp: String,
+    confirmEmailOtp: String,
 
-    forget_password_otp: String,
+    forgetPasswordOtp: String,
 
-    otp_expired_at:{ type: Date , default: Date.now() },
+    otpExpiredAt:{ type: Date , default: Date.now() },
 
-    field_attempts: { type: Number, default: 0 },
+    fieldAttempts: { type: Number, default: 0 },
 
-    lock_until: { type: Date , default: null },
+    lockUntil: { type: Date , default: null },
 
-    confirm_email: { type: Boolean, default: false },
+    confirmEmail: { type: Boolean, default: false },
 
     changeCredentialsTime: {type: Date}, 
 
-    profile_Image: String,
+    profileImage: String,
 
-    cover_Images: [String],
+    coverImages: [String],
 
-    profile_cloud_Image:{public_id:String , secure_url:String},
+    profileCloudImage:{public_id:String , secure_url:String},
 
-    cover_cloud_Images:[{public_id:String , secure_url:String}],
+    coverCloudImages:[{public_id:String , secure_url:String}],
 
 
     provider:{
@@ -89,11 +89,11 @@ export const userSchema =new Schema({
         },
         default:roles.user,  
     },
-    freezed_at: { type: Date, default: null },
-    freezed_by:{type:mongoose.Schema.Types.ObjectId , ref:"User"},
+    freezedAt: { type: Date, default: null },
+    freezedBy:{type:mongoose.Schema.Types.ObjectId , ref:"User"},
 
-    restored_at: { type: Date, default: null },
-    restored_by:{type:mongoose.Schema.Types.ObjectId , ref:"User"},
+    restoredAt: { type: Date, default: null },
+    restoredBy:{type:mongoose.Schema.Types.ObjectId , ref:"User"},
 
     gaitProfiles:[{
         type: mongoose.Schema.Types.ObjectId,

@@ -11,8 +11,6 @@ All endpoints except auth routes require a valid JWT token in the `Authorization
 Authorization: Bearer <access_token>
 ```
 
-Authorization: Bearer <access_token>
-```
 
 ---
 
@@ -21,10 +19,7 @@ Authorization: Bearer <access_token>
 ### 1. Stats Cards
 Provides key metrics for the dashboard cards.
 
-*   **Total Subjects**: `GET /dashboard/stats/subjects`
-*   **Processed Videos**: `GET /dashboard/stats/videos`
-*   **Recognition Accuracy**: `GET /dashboard/stats/accuracy`
-*   **Active Sessions**: `GET /dashboard/stats/sessions`
+*   **All Stats**: `GET /api/dashboard/stats`
 
 **Response Example (200):**
 ```json
@@ -43,7 +38,7 @@ Provides key metrics for the dashboard cards.
 ### 2. Recognition Accuracy Chart
 Provides time-series data for the accuracy chart.
 
-**URL**: `GET /dashboard/accuracy-chart`
+**URL**: `GET /api/dashboard/accuracy-chart`
 
 **Response Example (200):**
 ```json
@@ -64,7 +59,7 @@ Provides time-series data for the accuracy chart.
 ### 3. System Status
 Check the real-time health of services.
 
-**URL**: `GET /dashboard/system-status`
+**URL**: `GET /api/dashboard/system-status`
 
 **Response Example (200):**
 ```json
@@ -84,7 +79,7 @@ Check the real-time health of services.
 ### 4. Recent Uploads Table
 Retrieves the most recent video uploads and their analysis status.
 
-**URL**: `GET /dashboard/recent-uploads`
+**URL**: `GET /api/dashboard/recent-uploads`
 
 **Response Example (200):**
 ```json
@@ -136,8 +131,12 @@ Returns high-level performance metrics of the gait recognition system.
 ### 2. Accuracy by Condition
 Returns accuracy percentages for different gait conditions (Normal, Bag, Coat).
 
-**URL**: `GET /api/reports/accuracy-by-condition`
+**URL**: `GET /api/reports/accuracy-by-condition?from=2024-01-01&to=2024-02-01`
 **Auth**: Required
+
+**Query Parameters:**
+- `from` (optional): Start date
+- `to` (optional): End date
 
 **Response Example (200):**
 ```json
@@ -155,8 +154,12 @@ Returns accuracy percentages for different gait conditions (Normal, Bag, Coat).
 ### 3. Dataset Distribution
 Returns the percentage breakdown of sequences per condition in the dataset.
 
-**URL**: `GET /api/reports/dataset-distribution`
+**URL**: `GET /api/reports/dataset-distribution?from=2024-01-01&to=2024-02-01`
 **Auth**: Required
+
+**Query Parameters:**
+- `from` (optional): Start date
+- `to` (optional): End date
 
 **Response Example (200):**
 ```json
@@ -174,8 +177,12 @@ Returns the percentage breakdown of sequences per condition in the dataset.
 ### 4. Export Reports
 Combines all analytics data into a single exportable JSON object.
 
-**URL**: `GET /api/reports/export`
+**URL**: `GET /api/reports/export?from=2024-01-01&to=2024-02-01`
 **Auth**: Required
+
+**Query Parameters:**
+- `from` (optional): Start date
+- `to` (optional): End date
 
 **Response Example (200):**
 ```json
@@ -299,21 +306,17 @@ POST /auth/signup
 Content-Type: application/json
 
 {
-  "fullname": "John Doe",
+  "fullName": "John Doe",
   "email": "john@example.com",
   "password": "SecurePassword123!",
-  "confirm_password": "SecurePassword123!",
+  "confirmPassword": "SecurePassword123!",
   "gender": "male",
-  "phone": "+1234567890",
-  "role": "USER"
+  "phone": "+1234567890"
 }
 ```
 
-**Available Roles:**
-- `USER` - Regular user (default)
-- `ADMIN` - Administrator
-- `RESEARCHER` - Researcher
-- `SECURITY_OFFICER` - Security Officer
+**Notes:**
+- A new user is assigned the `USER` role by default. Admins can update roles via the User Profile endpoint.
 
 **Response (201):**
 ```json
@@ -321,7 +324,7 @@ Content-Type: application/json
   "success": true,
   "data": {
     "_id": "507f1f77bcf86cd799439011",
-    "fullname": "John Doe",
+    "fullName": "John Doe",
     "email": "john@example.com",
     "gender": "male",
     "phone": "+1234567890",
@@ -352,7 +355,7 @@ Content-Type: application/json
     "refreshToken": "eyJhbGciOiJIUzI1NiIs...",
     "user": {
       "_id": "507f1f77bcf86cd799439011",
-      "fullname": "John Doe",
+      "fullName": "John Doe",
       "email": "john@example.com",
       "phone": "+1234567890",
       "role": "USER"
@@ -384,24 +387,6 @@ Content-Type: application/json
 }
 ```
 
-### 4. Social Login (Gmail)
-```http
-POST /auth/social-login
-Content-Type: application/json
-
-{
-  "idToken": "google-id-token-here"
-}
-```
-
-**Response (200/201):**
-```json
-{
-  "success": true,
-  "data": null,
-  "error": null
-}
-```
 
 ### 4. Social Login (Gmail)
 ```http
@@ -531,7 +516,7 @@ Content-Type: application/json
   "email": "john@example.com",
   "otp": "123456",
   "password": "NewPassword123!",
-  "confirm_password": "NewPassword123!"
+  "confirmPassword": "NewPassword123!"
 }
 ```
 
@@ -558,7 +543,7 @@ Authorization: Bearer <access_token>
   "success": true,
   "data": {
     "_id": "507f1f77bcf86cd799439011",
-    "fullname": "John Doe",
+    "fullName": "John Doe",
     "email": "john@example.com",
     "gender": "male",
     "phone": "+1234567890",
@@ -575,7 +560,7 @@ PATCH /user
 Authorization: Bearer <access_token>
 Content-Type: multipart/form-data
 
-fullname: "John Updated"
+fullName: "John Updated"
 gender: "male"
 phone: "+1987654321"
 image: <new_profile_image_file> (Optional)
@@ -587,7 +572,7 @@ image: <new_profile_image_file> (Optional)
   "success": true,
   "data": {
     "_id": "507f1f77bcf86cd799439011",
-    "fullname": "John Updated",
+    "fullName": "John Updated",
     "email": "john@example.com",
     "gender": "male",
     "phone": "+1987654321",
@@ -644,7 +629,7 @@ Authorization: Bearer <token>
 **Response (200):**
 ```json
 {
-  "message": "Gait profiles retrieved successfully",
+  "success": true,
   "data": {
     "profiles": [
       {
@@ -662,7 +647,8 @@ Authorization: Bearer <token>
       "total_records": 1,
       "limit": 10
     }
-  }
+  },
+  "error": null
 }
 ```
 
@@ -675,7 +661,7 @@ Authorization: Bearer <token>
 **Response (200):**
 ```json
 {
-  "message": "Gait profile retrieved successfully",
+  "success": true,
   "data": {
     "_id": "507f1f77bcf86cd799439012",
     "user_id": "507f1f77bcf86cd799439011",
@@ -686,7 +672,8 @@ Authorization: Bearer <token>
     "status": "pending",
     "upload_date": "2024-01-15T10:30:00.000Z",
     "last_analyzed_at": null
-  }
+  },
+  "error": null
 }
 ```
 
@@ -704,11 +691,12 @@ Content-Type: application/json
 **Response (200):**
 ```json
 {
-  "message": "Gait profile updated successfully",
+  "success": true,
   "data": {
     "_id": "507f1f77bcf86cd799439012",
     "description": "Updated description"
-  }
+  },
+  "error": null
 }
 ```
 
@@ -721,8 +709,9 @@ Authorization: Bearer <token>
 **Response (200):**
 ```json
 {
-  "message": "Gait profile deleted successfully",
-  "data": {}
+  "success": true,
+  "data": {},
+  "error": null
 }
 ```
 
@@ -748,7 +737,7 @@ Note: The analysis may be returned as `completed`, `processing`, or `failed` dep
 
 ```json
 {
-  "message": "Analysis request submitted successfully",
+  "success": true,
   "data": {
     "_id": "507f1f77bcf86cd799439013",
     "user_id": "507f1f77bcf86cd799439011",
@@ -758,7 +747,8 @@ Note: The analysis may be returned as `completed`, `processing`, or `failed` dep
     "requested_at": "2024-01-15T10:35:00.000Z",
     "completed_at": null,
     "processing_time_ms": 150
-  }
+  },
+  "error": null
 }
 ```
 
@@ -777,7 +767,7 @@ Authorization: Bearer <token>
 **Response (200):**
 ```json
 {
-  "message": "Analysis result retrieved successfully",
+  "success": true,
   "data": {
     "_id": "507f1f77bcf86cd799439013",
     "user_id": "507f1f77bcf86cd799439011",
@@ -814,7 +804,8 @@ Authorization: Bearer <token>
     "requested_at": "2024-01-15T10:35:00.000Z",
     "completed_at": "2024-01-15T10:40:00.000Z",
     "processing_time_ms": 300000
-  }
+  },
+  "error": null
 }
 ```
 
@@ -832,7 +823,7 @@ Authorization: Bearer <token>
 **Response (200):**
 ```json
 {
-  "message": "Analysis history retrieved successfully",
+  "success": true,
   "data": {
     "analyses": [
       {
@@ -853,7 +844,8 @@ Authorization: Bearer <token>
       "total_records": 1,
       "limit": 10
     }
-  }
+  },
+  "error": null
 }
 ```
 
@@ -866,7 +858,7 @@ Authorization: Bearer <token>
 **Response (200):**
 ```json
 {
-  "message": "Profile analysis history retrieved successfully",
+  "success": true,
   "data": {
     "gait_profile_id": "507f1f77bcf86cd799439012",
     "analyses": [
@@ -883,7 +875,8 @@ Authorization: Bearer <token>
       "total_records": 1,
       "limit": 10
     }
-  }
+  },
+  "error": null
 }
 ```
 

@@ -4,13 +4,12 @@ import { logoutEnum } from "../../utils/Token/token.utils.js";
 
 export const signUpValidation = {
     body: joi.object({
-        fullname: generalFields.fullname.required(),
+        fullName: generalFields.fullName.required(),
         email: generalFields.email.required(),
         password: generalFields.password.required(),
-        confirm_password: generalFields.confirm_password,
+        confirmPassword: generalFields.confirmPassword,
         gender: generalFields.gender,
-        phone: generalFields.phone,
-        role: generalFields.role
+        phone: generalFields.phone
     }).required(),
 };
 
@@ -46,7 +45,7 @@ export const resetPasswordValidation = {
         email: generalFields.email.required(),
         otp: generalFields.otp.required(),
         password: generalFields.password.required(),
-        confirm_password: generalFields.confirm_password
+        confirmPassword: generalFields.confirmPassword
     })
 };
 

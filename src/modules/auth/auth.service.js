@@ -11,7 +11,7 @@ import { customAlphabet } from "nanoid";
 import TokenModel from "../../db/models/token.model.js";
 
 export const signup = async (req, res, next) => {
-  const { fullname, password, email, gender, phone, role } = req.body;
+  const { fullName, password, email, gender, phone } = req.body;
 
   if (await findOne({ model: UserModel, filter: { email } }))
     return next(new Error("User already exists", { cause: 409 }));
@@ -22,20 +22,19 @@ export const signup = async (req, res, next) => {
   // Generate OTP
   const otp = customAlphabet("0123456789", 6)();
   const hashOtp = await hash({ plainText: otp });
-  const otp_expired_at = new Date(Date.now() + 2 * 60 * 1000);
-  emailEvent.emit("confirmEmail", { to: email, otp, fullname });
+  const otpExpiredAt = new Date(Date.now() + 2 * 60 * 1000);
+  emailEvent.emit("confirmEmail", { to: email, otp, fullName });
 
   const users = await create({
     model: UserModel,
     data: [{
-      fullname,
+      fullName,
       password: hashedPassword,
       email,
       gender,
-      phone: encryptionPhone,
-      role,
-      confirm_email_otp: hashOtp,
-      otp_expired_at
+      phone: encryptionPhone,
+      confirmEmailOtp: hashOtp,
+      otpExpiredAt
     }],
   });
   const user = users[0];
@@ -46,11 +45,10 @@ export const signup = async (req, res, next) => {
     message: "Signup successful. Verification OTP sent to Gmail.",
     data: {
       _id: user._id,
-      fullname: user.fullname,
+      fullName: user.fullName,
       email: user.email,
       gender: user.gender,
-      phone: phone,
-      role: user.role,
+      phone: phone,
       message: "Please check your Gmail inbox for the 6-digit verification code."
     },
   });
@@ -66,7 +64,7 @@ export const login = async (req, res, next) => {
   }
 
   // Check if account is frozen
-  if (user.freezed_at) {
+  if (user.freezedAt) {
     return next(new Error("Account is frozen. Please contact administration.", { cause: 403 }));
   }
 
@@ -76,12 +74,12 @@ export const login = async (req, res, next) => {
   }
 
   // Check if email is confirmed
-  if (user.confirm_email !== true) {
+  if (user.confirmEmail !== true) {
     return next(new Error("Email is not confirmed yet", { cause: 403 }));
   }
 
   // Check brute force protection
-  if (user.lock_until && user.lock_until > Date.now()) {
+  if (user.lockUntil && user.lockUntil > Date.now()) {
     return next(new Error("Account is locked. Please try again later.", { cause: 403 }));
   }
 
@@ -96,17 +94,17 @@ export const login = async (req, res, next) => {
     const updatedUser = await dbService.findOneAndUpdate({
       model: UserModel,
       filter: { email },
-      data: { $inc: { field_attempts: 1 } },
+      data: { $inc: { fieldAttempts: 1 } },
       options: { new: true }
     });
 
-    if (updatedUser.field_attempts >= 5) {
+    if (updatedUser.fieldAttempts >= 5) {
       await dbService.updateOne({
         model: UserModel,
         filter: { email },
         data: {
-          lock_until: new Date(Date.now() + 15 * 60 * 1000), // Lock for 15 minutes
-          field_attempts: 0
+          lockUntil: new Date(Date.now() + 15 * 60 * 1000), // Lock for 15 minutes
+          fieldAttempts: 0
         }
       });
       return next(new Error("Too many invalid attempts. Account is locked for 15 minutes.", { cause: 403 }));
@@ -116,11 +114,11 @@ export const login = async (req, res, next) => {
   }
 
   // Successful login - Reset attempts
-  if (user.field_attempts > 0 || user.lock_until) {
+  if (user.fieldAttempts > 0 || user.lockUntil) {
     await dbService.updateOne({
       model: UserModel,
       filter: { email },
-      data: { field_attempts: 0, lock_until: null }
+      data: { fieldAttempts: 0, lockUntil: null }
     });
   }
 
@@ -135,7 +133,7 @@ export const login = async (req, res, next) => {
       refreshToken: newCredentials.refreshToken,
       user: {
         _id: user._id,
-        fullname: user.fullname,
+        fullName: user.fullName,
         email: user.email,
         phone: user.phone ? decrypt(user.phone) : undefined,
         role: user.role
@@ -188,8 +186,8 @@ export const confirmEmail = async (req, res, next) => {
     model: UserModel,
     filter: {
       email,
-      confirm_email: false,
-      confirm_email_otp: { $exists: true }
+      confirmEmail: false,
+      confirmEmailOtp: { $exists: true }
     }
   });
 
@@ -197,20 +195,20 @@ export const confirmEmail = async (req, res, next) => {
     return next(new Error("User Not Found Or Email Already Confirmed", { cause: 401 }));
   }
 
-  if (user.lock_until && user.lock_until > Date.now()) {
+  if (user.lockUntil && user.lockUntil > Date.now()) {
     return next(new Error("Account is locked. Please try again later", { cause: 403 }));
   }
 
-  if (!user.confirm_email_otp || user.otp_expired_at < Date.now()) {
+  if (!user.confirmEmailOtp || user.otpExpiredAt < Date.now()) {
     return next(new Error("OTP has expired. Please request a new one.", { cause: 400 }));
   }
-  if (user.field_attempts >= 5) {
+  if (user.fieldAttempts >= 5) {
     await dbService.updateOne({
       model: UserModel,
       filter: { email },
       data: {
-        lock_until: new Date(Date.now() + 15 * 60 * 1000), // Lock for 15 minutes
-        field_attempts: 0
+        lockUntil: new Date(Date.now() + 15 * 60 * 1000), // Lock for 15 minutes
+        fieldAttempts: 0
       }
     });
     return next(new Error("Too many invalid attempts. Account is locked for 15 minutes.", { cause: 403 }));
@@ -220,13 +218,13 @@ export const confirmEmail = async (req, res, next) => {
     model: UserModel,
     filter: { email },
     data: {
-      $inc: { field_attempts: 1 }
+      $inc: { fieldAttempts: 1 }
     }
   });
 
   const isMatch = await compare({
     plainText: otp,
-    hash: user.confirm_email_otp
+    hash: user.confirmEmailOtp
   });
 
   if (!isMatch) {
@@ -237,8 +235,8 @@ export const confirmEmail = async (req, res, next) => {
     model: UserModel,
     filter: { email },
     data: {
-      confirm_email: true,
-      $unset: { confirm_email_otp: true, otp_expired_at: 0, field_attempts: 0, lock_until: 0 },
+      confirmEmail: true,
+      $unset: { confirmEmailOtp: true, otpExpiredAt: 0, fieldAttempts: 0, lockUntil: 0 },
       $inc: { __v: 1 }
     }
   });
@@ -295,10 +293,10 @@ export const loginWithGmail = async (req, res, next) => {
     data: [
       {
         email,
-        fullname: name || `${given_name || ""} ${family_name || ""}`.trim() || email.split("@")[0],
+        fullName: name || `${given_name || ""} ${family_name || ""}`.trim() || email.split("@")[0],
         photo: picture,
         provider: providers.google,
-        confirm_email: true,
+        confirmEmail: true,
       },
     ],
   });
@@ -333,22 +331,22 @@ export const forgetPassword = async (req, res, next) => {
   const { email } = req.body;
   const otp = await customAlphabet("0123456789", 6)();
   const hashOtp = await hash({ plainText: otp })
-  const otp_expired_at = new Date(Date.now() + 2 * 60 * 1000);
+  const otpExpiredAt = new Date(Date.now() + 2 * 60 * 1000);
 
   const user = await dbService.findOneAndUpdate({
     model: UserModel,
     filter: {
       email,
       provider: providers.system,
-      confirm_email: true,
-      freezed_at: null
+      confirmEmail: true,
+      freezedAt: null
     },
-    data: { forget_password_otp: hashOtp, otp_expired_at }
+    data: { forgetPasswordOtp: hashOtp, otpExpiredAt }
   });
   if (!user) {
     return next(new Error("User Not Found", { cause: 404 }));
   }
-  emailEvent.emit("forgetPassword", { to: email, otp, fullname: user.fullname });
+  emailEvent.emit("forgetPassword", { to: email, otp, fullName: user.fullName });
 
   return successResponse({
     res,
@@ -366,20 +364,20 @@ export const resetPassword = async (req, res, next) => {
     filter: {
       email,
       provider: providers.system,
-      confirm_email: true,
-      freezed_at: null,
-      forget_password_otp: { $exists: true }
+      confirmEmail: true,
+      freezedAt: null,
+      forgetPasswordOtp: { $exists: true }
     }
   });
   if (!user) {
     return next(new Error("User Not Found", { cause: 404 }));
   }
 
-  if (!await compare({ plainText: otp, hash: user.forget_password_otp })) {
+  if (!await compare({ plainText: otp, hash: user.forgetPasswordOtp })) {
     return next(new Error("Invalid OTP", { cause: 400 }));
   }
 
-  if (user.otp_expired_at < Date.now()) {
+  if (user.otpExpiredAt < Date.now()) {
     return next(new Error("OTP has expired. Please request a new one.", { cause: 400 }));
   }
 
@@ -390,7 +388,7 @@ export const resetPassword = async (req, res, next) => {
     filter: { email },
     data: {
       password: hashedPassword,
-      $unset: { forget_password_otp: "", otp_expired_at: "" },
+      $unset: { forgetPasswordOtp: "", otpExpiredAt: "" },
       $inc: { __v: 1 }
     }
   });
@@ -409,7 +407,7 @@ export const resendEmailOtp = async (req, res, next) => {
     model: UserModel,
     filter: {
       email,
-      confirm_email: false,
+      confirmEmail: false,
       provider: providers.system
     }
   });
@@ -419,29 +417,29 @@ export const resendEmailOtp = async (req, res, next) => {
   }
 
   // Check if account is locked
-  if (user.lock_until && user.lock_until > Date.now()) {
+  if (user.lockUntil && user.lockUntil > Date.now()) {
     return next(new Error("Account is locked. Please try again later", { cause: 403 }));
   }
 
   // Generate new OTP
   const otp = customAlphabet("0123456789", 6)();
   const hashOtp = await hash({ plainText: otp });
-  const otp_expired_at = new Date(Date.now() + 2 * 60 * 1000);
+  const otpExpiredAt = new Date(Date.now() + 2 * 60 * 1000);
 
   // Update user with new OTP
   await dbService.updateOne({
     model: UserModel,
     filter: { email },
     data: {
-      confirm_email_otp: hashOtp,
-      otp_expired_at,
-      field_attempts: 0,
-      lock_until: null
+      confirmEmailOtp: hashOtp,
+      otpExpiredAt,
+      fieldAttempts: 0,
+      lockUntil: null
     }
   });
 
   // Send OTP via email
-  emailEvent.emit("confirmEmail", { to: email, otp, fullname: user.fullname });
+  emailEvent.emit("confirmEmail", { to: email, otp, fullName: user.fullName });
 
   return successResponse({
     res,
@@ -458,8 +456,8 @@ export const resendForgotPasswordOtp = async (req, res, next) => {
     filter: {
       email,
       provider: providers.system,
-      confirm_email: { $exists: true },
-      freezed_at: null
+      confirmEmail: { $exists: true },
+      freezedAt: null
     }
   });
 
@@ -468,29 +466,29 @@ export const resendForgotPasswordOtp = async (req, res, next) => {
   }
 
   // Check if account is locked
-  if (user.lock_until && user.lock_until > Date.now()) {
+  if (user.lockUntil && user.lockUntil > Date.now()) {
     return next(new Error("Account is locked. Please try again later", { cause: 403 }));
   }
 
   // Generate new OTP
   const otp = customAlphabet("0123456789", 6)();
   const hashOtp = await hash({ plainText: otp });
-  const otp_expired_at = new Date(Date.now() + 2 * 60 * 1000);
+  const otpExpiredAt = new Date(Date.now() + 2 * 60 * 1000);
 
   // Update user with new OTP
   await dbService.updateOne({
     model: UserModel,
     filter: { email },
     data: {
-      forget_password_otp: hashOtp,
-      otp_expired_at,
-      field_attempts: 0,
-      lock_until: null
+      forgetPasswordOtp: hashOtp,
+      otpExpiredAt,
+      fieldAttempts: 0,
+      lockUntil: null
     }
   });
 
   // Send OTP via email
-  emailEvent.emit("forgetPassword", { to: email, otp, fullname: user.fullname });
+  emailEvent.emit("forgetPassword", { to: email, otp, fullName: user.fullName });
 
   return successResponse({
     res,
