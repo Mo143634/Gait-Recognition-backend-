@@ -2,6 +2,7 @@ import Joi from 'joi';
 
 export const uploadGaitValidation = Joi.object({
     description: Joi.string().max(500).optional(),
+    condition: Joi.string().valid("normal", "bag", "coat").default("normal")
 }).unknown(true); // Allow file field from multer
 
 export const getGaitProfileValidation = Joi.object({

@@ -8,7 +8,7 @@ const cloudinary = cloudinaryConfig();
 
 export const uploadGaitVideo = async (req, res, next) => {
     try {
-        const { description } = req.body;
+        const { description, condition } = req.body;
         const userId = req.user._id;
 
         if (!req.file) {
@@ -42,6 +42,7 @@ export const uploadGaitVideo = async (req, res, next) => {
             file_name: req.file.originalname,
             file_size: req.file.size,
             description: description || "",
+            condition: condition || "normal",
             status: "pending",
             metadata: {
                 duration: uploadResult.duration
