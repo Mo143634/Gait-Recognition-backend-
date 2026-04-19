@@ -50,6 +50,10 @@ export const gaitAnalysisSchema = new Schema({
         type: mongoose.Schema.Types.Mixed,
         description: "Raw response from AI API"
     },
+    ground_truth: {
+        type: Boolean,
+        description: "Indicates if the analysis result matched the expected ground truth"
+    },
     error_message: String,
     requested_at: {
         type: Date,
@@ -58,5 +62,11 @@ export const gaitAnalysisSchema = new Schema({
     completed_at: Date,
     processing_time_ms: Number
 }, { timestamps: true });
+
+// Performance indexes for dashboard analytics
+gaitAnalysisSchema.index({ status: 1 });
+gaitAnalysisSchema.index({ createdAt: -1 });
+gaitAnalysisSchema.index({ gait_profile_id: 1 });
+gaitAnalysisSchema.index({ completed_at: -1 });
 
 export const GaitAnalysisModel = mongoose.models.GaitAnalysis || mongoose.model("GaitAnalysis", gaitAnalysisSchema);

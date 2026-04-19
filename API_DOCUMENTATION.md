@@ -16,6 +16,8 @@ Authorization: Bearer <access_token>
 
 ## 📊 Dashboard Endpoints
 
+> **Note:** All dashboard and report analytics endpoints dynamically aggregate real-time, data-driven metadata directly from the system's database and AI processing logs. Responses are not static stubs.
+
 ### 1. Stats Cards
 Provides key metrics for the dashboard cards.
 

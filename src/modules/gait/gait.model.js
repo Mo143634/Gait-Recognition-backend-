@@ -55,4 +55,8 @@ export const gaitProfileSchema = new Schema({
     }
 }, { timestamps: true });
 
+// Performance indexes
+gaitProfileSchema.index({ condition: 1 });
+gaitProfileSchema.index({ user_id: 1 });
+
 export const GaitProfileModel = mongoose.models.GaitProfile || mongoose.model("GaitProfile", gaitProfileSchema);
