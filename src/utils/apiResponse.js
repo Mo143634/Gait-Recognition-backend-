@@ -1,3 +1,3 @@
-// Re-export from successResponse for backward compatibility
-export { successResponse as apiResponse } from './multer/successResponse.utils.js';
-export { successResponse } from './multer/successResponse.utils.js';
+// Re-export from the new generic response location
+export { successResponse as apiResponse } from './response/response.utils.js';
+export { successResponse } from './response/response.utils.js';

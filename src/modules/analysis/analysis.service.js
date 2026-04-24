@@ -1,9 +1,7 @@
 import { GaitAnalysisModel } from "./analysis.model.js";
 import { GaitProfileModel } from "../gait/gait.model.js";
 import { UserModel } from "../../db/models/user.model.js";
-import axios from 'axios';
-
-const AI_API_URL = process.env.AI_API_URL || "http://localhost:5000/api/analyze";
+import * as predictionService from '../prediction/prediction.service.js';
 
 export const runAnalysis = async (req, res, next) => {
     try {
@@ -30,58 +28,37 @@ export const runAnalysis = async (req, res, next) => {
 
         await analysis.save();
 
-        // Enhanced AI API call with retries and better error handling
-        let aiResponse;
-        let attempts = 0;
-        const maxAttempts = 3;
+        console.log(`🚀 Starting real AI analysis for profile: ${gait_profile_id}`);
 
-        while (attempts < maxAttempts) {
-            try {
-                aiResponse = await axios.post(AI_API_URL, {
-                    video_url: gaitProfile.video_url,
-                    analysis_id: analysis._id.toString()
-                }, {
-                    timeout: 120000 // 2 minute timeout
-                });
-                break; // Success, exit loop
-            } catch (error) {
-                attempts++;
-                console.error(`AI API Attempt ${attempts} failed: ${error.message}`);
+        try {
+            // Call the real prediction service using the video URL
+            const aiResult = await predictionService.predictModelByUrl(gaitProfile.video_url);
+
+            analysis.status = "completed";
+            analysis.result = {
+                prediction: aiResult.prediction,
+                ...aiResult.raw_response?.result // Capture other metrics if available
+            };
+            analysis.confidence_score = aiResult.confidence;
+            analysis.completed_at = new Date();
+            
+            // Capture embedding (feature_vector)
+            const featureVector = aiResult.feature_vector || [];
+            
+            if (featureVector.length > 0) {
+                analysis.embedding = featureVector;
                 
-                // Only retry on network errors or 5xx server errors
-                const isRetryable = !error.response || (error.response.status >= 500);
-                if (attempts >= maxAttempts || !isRetryable) {
-                    analysis.status = "failed";
-                    analysis.error_message = error.response?.data?.message || error.message || "Failed to process analysis";
-                    analysis.ai_response = error.response?.data;
-                    break;
-                }
-                // Wait before retrying (exponential backoff)
-                await new Promise(resolve => setTimeout(resolve, attempts * 2000));
+                // Update the GaitProfile with the embedding
+                gaitProfile.embedding = featureVector;
+                await gaitProfile.save();
             }
-        }
 
-        if (aiResponse) {
-            if (aiResponse.status === 200) {
-                // Check if the AI returned an application-level error despite the 200 OK
-                if (aiResponse.data.error || aiResponse.data.status === "error") {
-                    analysis.status = "failed";
-                    analysis.error_message = aiResponse.data.error || aiResponse.data.message || "AI API returned an error";
-                } else {
-                    analysis.status = "completed";
-                    analysis.result = aiResponse.data.result || {};
-                    analysis.confidence_score = aiResponse.data.confidence_score || 0;
-                    analysis.completed_at = new Date();
-                }
-            } else if (aiResponse.status === 202) {
-                // 202 Accepted means it's still being processed
-                analysis.status = "processing";
-                analysis.message = "Analysis is being processed by the AI service.";
-            } else {
-                analysis.status = "failed";
-                analysis.error_message = `Unexpected AI API response status: ${aiResponse.status}`;
-            }
-            analysis.ai_response = aiResponse.data;
+            analysis.ai_response = aiResult.raw_response;
+
+        } catch (error) {
+            console.error(`🔥 AI Analysis Failed: ${error.message}`);
+            analysis.status = "failed";
+            analysis.error_message = error.message;
         }
 
         analysis.processing_time_ms = Date.now() - startTime;
@@ -100,7 +77,7 @@ export const runAnalysis = async (req, res, next) => {
 
         return {
             statusCode: 201,
-            message: "Analysis request submitted successfully",
+            message: "Analysis completed successfully via AI Model",
             data: analysis
         };
     } catch (error) {

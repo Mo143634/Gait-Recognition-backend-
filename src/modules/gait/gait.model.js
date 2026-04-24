@@ -52,8 +52,16 @@ export const gaitProfileSchema = new Schema({
         width: Number,
         frame_rate: Number,
         codec: String
+    },
+    embedding: {
+        type: [Number],
+        description: "Gait feature vector (embedding) for similarity search",
+        required: false
     }
 }, { timestamps: true });
+
+// Note: Vector index will be created in MongoDB Atlas for optimal performance
+// A manual fallback using cosine similarity is implemented in the search service.
 
 // Performance indexes
 gaitProfileSchema.index({ condition: 1 });

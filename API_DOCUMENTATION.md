@@ -1041,6 +1041,52 @@ Required for token generation and data encryption.
 - `MONGODB_URI`: Connection string for MongoDB.
 - `CORS_ORIGIN`: Allowed origins (comma-separated, e.g., `http://localhost:3000`).
 - `AI_API_URL`: URL of the gait analysis AI service.
+- `HF_SPACE_URL`: URL for the Hugging Face Space prediction model (e.g., `https://mohamed6262-model-1.hf.space/predict`).
+- `HUGGINGFACE_API_KEY`: API key for Hugging Face inference.
+
+
+---
+
+## 🤖 Prediction Endpoint
+
+### POST /api/predict
+
+#### Description:
+Send a media file (image or video) to the Hugging Face Space model and get direct prediction results/feature vectors.
+
+#### Request:
+- **URL**: `/api/predict`
+- **Method**: `POST`
+- **Headers**: `Content-Type: multipart/form-data`
+- **Body**:
+  - `file`: Media file (Required. Supported formats: MP4, AVI, MOV, JPG, PNG)
+
+#### Example cURL:
+```bash
+curl -X POST http://localhost:5000/api/predict \
+  -H "Authorization: Bearer <token>" \
+  -F "file=@path/to/media.mp4"
+```
+
+#### Success Response:
+- **Code**: `200 OK`
+- **Content**:
+```json
+{
+  "success": true,
+  "data": {
+    "status": "completed",
+    "feature_vector": [0.123, 0.456, ...],
+    "message": "Direct prediction from Hugging Face Space",
+    "timestamp": "2024-04-21T..."
+  },
+  "error": null
+}
+```
+
+#### Errors:
+- **400 Bad Request**: No file provided or invalid file format.
+- **500 Internal Server Error**: AI model failure, timeout, or configuration issue.
 
 ---
 

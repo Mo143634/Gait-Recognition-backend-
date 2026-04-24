@@ -60,7 +60,12 @@ export const gaitAnalysisSchema = new Schema({
         default: Date.now
     },
     completed_at: Date,
-    processing_time_ms: Number
+    processing_time_ms: Number,
+    embedding: {
+        type: [Number],
+        required: true,
+        description: "Gait feature vector extracted during this analysis session"
+    }
 }, { timestamps: true });
 
 // Performance indexes for dashboard analytics

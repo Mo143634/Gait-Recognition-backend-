@@ -1,6 +1,6 @@
 import { UserModel } from "../../db/models/user.model.js";
 import { cloudinaryConfig } from "../../utils/multer/cloudinary.js";
-import { successResponse } from "../../utils/multer/successResponse.utils.js";
+import { successResponse } from "../../utils/response/response.utils.js";
 import { encrypt, decrypt } from "../../utils/Encryption/encription.utils.js";
 import { deleteFile } from "../../utils/file/fileActions.js";
 

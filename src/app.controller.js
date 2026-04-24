@@ -5,8 +5,10 @@ import userRouter from './modules/user/user.controller.js'
 import dashboardRouter from './modules/dashboard/dashboard.routes.js'
 import reportsRouter from './modules/reports/reports.routes.js'
 import settingsRouter from './modules/settings/settings.routes.js'
+import predictionRouter from './modules/prediction/prediction.routes.js'
+import searchRouter from './modules/analysis/search.routes.js'
 import { connectDB } from './db/connection.js'
-import { globalErrorHandler } from './utils/multer/errorHandling.utils.js'
+import { globalErrorHandler } from './middleware/globalError.middleware.js'
 import cors from 'cors'
 import { startDeleteUnactivatedUsersJob } from './utils/cron/deleteUnactivateduser.utils.js'
 import path from 'node:path'
@@ -32,6 +34,8 @@ const bootstrap = async (app,express) =>{
     attachmentRoutingLogger(app , "/api/dashboard" , dashboardRouter , "dashboardLogs.log")
     attachmentRoutingLogger(app , "/api/reports" , reportsRouter , "reportsLogs.log")
     attachmentRoutingLogger(app , "/api/settings" , settingsRouter , "settingsLogs.log")
+    attachmentRoutingLogger(app , "/api/predict" , predictionRouter , "predictionLogs.log")
+    attachmentRoutingLogger(app , "/api/search" , searchRouter , "searchLogs.log")
     await connectDB()
     app.use(cors(corsOptions()))
     startDeleteUnactivatedUsersJob()
@@ -48,6 +52,8 @@ const bootstrap = async (app,express) =>{
     app.use('/api/dashboard', dashboardRouter)
     app.use('/api/reports', reportsRouter)
     app.use('/api/settings', settingsRouter)
+    app.use('/api/predict', predictionRouter)
+    app.use('/api/search', searchRouter)
 
     app.all('/*dummy' , (req,res,next)=>{
         return next(new Error("Invalid Route",{cause:404}))

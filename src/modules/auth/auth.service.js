@@ -2,7 +2,7 @@ import { create, findOne } from "../../db/dbService.js";
 import { providers, UserModel } from "../../db/models/user.model.js";
 import { encrypt, decrypt } from "../../utils/Encryption/encription.utils.js";
 import { compare, hash } from "../../utils/Hashing/hash.utils.js";
-import { successResponse } from "../../utils/multer/successResponse.utils.js";
+import { successResponse } from "../../utils/response/response.utils.js";
 import { getNewLoginCredentials, logoutEnum, } from "../../utils/Token/token.utils.js";
 import { OAuth2Client } from "google-auth-library";
 import * as dbService from "../../db/dbService.js"
